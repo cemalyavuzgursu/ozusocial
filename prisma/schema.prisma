@@ -1,0 +1,231 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// NextAuth Required Models
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  coverImage    String?   // OzuSocial: Profil arka plan resmi (Banner)
+  role          String    @default("STUDENT") // STUDENT veya CLUB (SQLite enums natively destegi zayıf olduğu için string)
+  
+  accounts      Account[]
+  sessions      Session[]
+  posts         Post[]    // OzuSocial: Kullanıcının attığı gönderiler
+  events        Event[]   // OzuSocial: Kullanıcının (Kulüp) oluşturduğu etkinlikler
+  roleRequests  RoleRequest[] // OzuSocial: Kullanıcının başvuru geçmişi
+
+  // Yeni Aşama 13 Alanları (Gizlilik ve Onboarding)
+  birthYear          Int?
+  department         String?
+  isOnboarded        Boolean   @default(false)
+  showProfileDetails Boolean   @default(true) // Geriye dönük uyumluluk veya genel toggle için tutulabilir
+  showDepartment     Boolean   @default(true)
+  showBirthYear      Boolean   @default(true)
+  isPrivate          Boolean   @default(false)
+  isBanned           Boolean   @default(false)
+
+  // Takip Sistemi
+  followedBy    User[]   @relation("UserFollows")
+  following     User[]   @relation("UserFollows")
+  
+  // Takip İstekleri (Gizli Hesaplar İçin)
+  sentFollowRequests     FollowRequest[] @relation("SentFollowRequests")
+  receivedFollowRequests FollowRequest[] @relation("ReceivedFollowRequests")
+
+  // Mesajlaşma Sistemi
+  conversations Conversation[] @relation("UserConversations")
+  messagesSent  Message[]      @relation("SentMessages")
+
+  // Etkileşimler
+  likes         Like[]
+  comments      Comment[]
+  commentLikes  CommentLike[]
+
+  // Yardım Talepleri
+  supportTickets SupportTicket[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// OzuSocial Custom Models
+model Post {
+  id        String   @id @default(cuid())
+  content   String?
+  imageUrl  String?
+  videoUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes     Like[]
+  comments  Comment[]
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId]) // Bir kullanıcı bir gönderiyi sadece 1 kez beğenebilir
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  likes     CommentLike[]
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  commentId String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+}
+
+// OzuSocial Events
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  imageUrl    String?
+  location    String
+  startDate   DateTime
+  endDate     DateTime
+  price       String?   // Örn: "Ücretsiz" veya "150 TL"
+  university  String    // Kullanıcının e-postasından türetilen üniversite adı
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+// OzuSocial Admin & Roles
+model RoleRequest {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  message     String?  // Başvuru sırasında eklenen not
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// OzuSocial Messaging System
+model Conversation {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  participants User[]    @relation("UserConversations")
+  messages     Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  content        String
+  createdAt      DateTime     @default(now())
+  isRead         Boolean      @default(false)
+  
+  senderId       String
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+// Yeni: Takip İsteği Modeli (Gizli Hesaplar)
+model FollowRequest {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  senderId  String
+  sender    User     @relation("SentFollowRequests", fields: [senderId], references: [id], onDelete: Cascade)
+
+  receiverId String
+  receiver   User    @relation("ReceivedFollowRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+}
+
+// Yeni: Yardım ve Destek Ticket (Aşama 20)
+model SupportTicket {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    String   // "Öneri", "Şikayet", "Teknik Destek", "Diğer"
+  description String
+  mediaUrl    String?  // İsteğe bağlı görsel veya video
+  status      String   @default("OPEN") // OPEN, RESOLVED, CLOSED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
