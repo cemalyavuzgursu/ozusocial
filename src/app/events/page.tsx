@@ -9,7 +9,10 @@ import Navbar from "@/components/layout/Navbar";
 
 export const dynamic = "force-dynamic";
 
-export default async function EventsPage() {
+export default async function EventsPage(props: { searchParams: Promise<{ sort?: string }> }) {
+    const searchParams = await props.searchParams;
+    const sortOrder = searchParams.sort === 'desc' ? 'desc' : 'asc';
+
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) redirect("/");
 
@@ -21,14 +24,26 @@ export default async function EventsPage() {
     if (!user) redirect("/");
     if (!user.isOnboarded) redirect("/onboarding");
 
-    // Kullanıcının okuluna bağlı etkinlikleri listeleme mantığı
+    // Sadece son 1 hafta (7 gün) içindeki (veya gelecekteki) etkinlikleri göster
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    // Etkinlik sorgusu:
+    // 1. Etkinlik bitiş tarihi 7 gün öncesinden büyük olacak
+    // 2. Ya (isUniversityOnly false) ya da (isUniversityOnly true ve university = current_university)
     const universityName = getUniversityFromEmail(session.user.email);
     const events = await prisma.event.findMany({
-        where: { university: universityName },
+        where: {
+            endDate: { gte: sevenDaysAgo },
+            OR: [
+                { isUniversityOnly: false },
+                { isUniversityOnly: true, university: universityName }
+            ]
+        },
         include: {
             author: { select: { id: true, name: true, image: true, role: true } }
         },
-        orderBy: { startDate: "asc" }
+        orderBy: { startDate: sortOrder }
     });
 
     return (
@@ -45,9 +60,22 @@ export default async function EventsPage() {
                             {universityName} ağındaki aktif kulüp etkinlikleri.
                         </p>
                     </div>
-                    {user.role === "CLUB" && (
-                        <CreateEventButton />
-                    )}
+                    <div className="flex items-center gap-3">
+                        <form className="flex items-center gap-2">
+                            <select
+                                name="sort"
+                                defaultValue={sortOrder}
+                                onChange={(e) => e.target.form?.submit()}
+                                className="bg-neutral-100 dark:bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-rose-500 rounded-xl px-4 py-2 text-sm text-neutral-900 dark:text-neutral-100 cursor-pointer"
+                            >
+                                <option value="asc">Önce Yaklaşanlar</option>
+                                <option value="desc">Önce İleri Tarihliler</option>
+                            </select>
+                        </form>
+                        {user.role === "CLUB" && (
+                            <CreateEventButton />
+                        )}
+                    </div>
                 </div>
 
                 {events.length === 0 ? (

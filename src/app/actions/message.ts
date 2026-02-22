@@ -99,3 +99,29 @@ export async function getMessages(conversationId: string) {
         include: { sender: { select: { id: true, name: true, image: true } } }
     });
 }
+
+export async function getUnreadMessageCount() {
+    noStore(); // Polling
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) return 0;
+
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { id: true }
+    });
+    if (!user) return 0;
+
+    const count = await prisma.message.count({
+        where: {
+            isRead: false,
+            senderId: { not: user.id },
+            conversation: {
+                participants: {
+                    some: { id: user.id }
+                }
+            }
+        }
+    });
+
+    return count;
+}

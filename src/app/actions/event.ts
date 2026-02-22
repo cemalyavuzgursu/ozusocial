@@ -25,6 +25,7 @@ export async function createEvent(formData: FormData, imageUrl?: string) {
     const startDateRaw = formData.get("startDate")?.toString();
     const endDateRaw = formData.get("endDate")?.toString();
     const price = formData.get("price")?.toString() || null;
+    const isUniversityOnly = formData.get("isUniversityOnly") === "on";
 
     if (!title || !description || !location || !startDateRaw || !endDateRaw) {
         throw new Error("Lütfen tüm zorunlu alanları doldurun.");
@@ -50,6 +51,7 @@ export async function createEvent(formData: FormData, imageUrl?: string) {
                 price,
                 imageUrl: imageUrl || null,
                 university: universityName,
+                isUniversityOnly,
                 authorId: user.id
             }
         });

@@ -170,6 +170,7 @@ model Event {
   endDate     DateTime
   price       String?   // Örn: "Ücretsiz" veya "150 TL"
   university  String    // Kullanıcının e-postasından türetilen üniversite adı
+  isUniversityOnly Boolean @default(true) // Sadece kendi üniversitesine mi özel
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

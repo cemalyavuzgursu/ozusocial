@@ -64,11 +64,12 @@ export default function CreateEventModal({ onClose }: { onClose: () => void }) {
                 uploadedImageUrl = uploadJson.url;
             }
 
-            // TODO: Server Action entegrasyonu (createEvent)
-            console.log("Yeni Event Eklenecek Data: ", Object.fromEntries(formData), uploadedImageUrl);
+            const isUniversityOnly = formData.get("isUniversityOnly") === "on";
+
+            const { createEvent } = await import("@/app/actions/event");
+            await createEvent(formData, uploadedImageUrl);
 
             // Başarılı olursa onClose()
-            alert("Etkinlik başarıyla oluşturuldu! (Server Action henüz bağlı değil)");
             onClose();
 
         } catch (err: any) {
@@ -141,6 +142,20 @@ export default function CreateEventModal({ onClose }: { onClose: () => void }) {
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Konum / Yer <span className="text-rose-500">*</span></label>
                             <input required type="text" name="location" placeholder="Örn: AB1 - Reşat Aytaç Oditoryumu veya Online" className="w-full bg-neutral-100 dark:bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-rose-500 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100" />
+                        </div>
+
+                        <div className="flex items-center gap-3 p-4 rounded-xl bg-rose-50/50 dark:bg-rose-500/5 border border-rose-100 dark:border-rose-500/10">
+                            <input
+                                type="checkbox"
+                                name="isUniversityOnly"
+                                id="isUniversityOnly"
+                                defaultChecked
+                                className="w-5 h-5 text-rose-500 rounded border-rose-300 dark:border-rose-700 dark:bg-neutral-800 focus:ring-rose-500 cursor-pointer"
+                            />
+                            <div className="flex flex-col">
+                                <label htmlFor="isUniversityOnly" className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 cursor-pointer">Sadece Kendi Üniversitem Gürsün</label>
+                                <span className="text-xs text-neutral-500 dark:text-neutral-400">Bu seçeneği kaldırırsanız, diğer üniversitelerdeki öğrenciler de etkinliğinizi görebilir.</span>
+                            </div>
                         </div>
 
                         <div className="space-y-1.5">

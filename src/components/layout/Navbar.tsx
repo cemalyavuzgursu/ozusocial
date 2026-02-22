@@ -4,6 +4,7 @@ import Link from "next/link";
 import AuthButton from "@/components/auth/AuthButton";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import MessageNavIcon from "./MessageNavIcon";
 
 export default function Navbar() {
     const pathname = usePathname();
@@ -38,12 +39,7 @@ export default function Navbar() {
                     >
                         Etkinlikler
                     </Link>
-                    <Link
-                        href="/messages"
-                        className={`font-medium transition-colors ${pathname?.startsWith('/messages') ? 'text-rose-600 dark:text-rose-500' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'}`}
-                    >
-                        Mesajlar
-                    </Link>
+                    <MessageNavIcon />
                 </nav>
             </div>
 

@@ -3,7 +3,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_noStore as noStore } from "next/cache";
 
 export async function toggleLike(postId: string) {
     const session = await getServerSession(authOptions);
@@ -117,4 +117,38 @@ export async function deleteComment(commentId: string) {
 
     revalidatePath("/feed");
     revalidatePath("/profile");
+}
+
+export async function getPostStats(postId: string) {
+    noStore(); // Polling
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.email ?
+        (await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } }))?.id : null;
+
+    const post = await prisma.post.findUnique({
+        where: { id: postId },
+        include: {
+            likes: { select: { userId: true } },
+            _count: { select: { likes: true } },
+            comments: {
+                select: {
+                    id: true,
+                    _count: { select: { likes: true } },
+                    likes: { select: { userId: true } }
+                }
+            }
+        }
+    });
+
+    if (!post) return null;
+
+    return {
+        likeCount: post._count.likes,
+        hasLiked: userId ? post.likes.some(l => l.userId === userId) : false,
+        comments: post.comments.map(c => ({
+            id: c.id,
+            likeCount: c._count.likes,
+            hasLiked: userId ? c.likes.some(l => l.userId === userId) : false
+        }))
+    };
 }

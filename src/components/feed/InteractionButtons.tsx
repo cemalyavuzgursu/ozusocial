@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
-import { toggleLike, addComment, toggleCommentLike, editComment, deleteComment } from "@/app/actions/interaction";
+import { useState, useEffect, useCallback } from "react";
+import { toggleLike, addComment, toggleCommentLike, editComment, deleteComment, getPostStats } from "@/app/actions/interaction";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 
@@ -36,6 +36,40 @@ export default function InteractionButtons({ postId, initialLikeCount, initialHa
 
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editCommentText, setEditCommentText] = useState("");
+
+    const fetchStats = useCallback(async () => {
+        try {
+            const stats = await getPostStats(postId);
+            if (!stats) return;
+
+            // Update Post Likes if we are not actively toggling
+            if (!isLiking) {
+                setLikeCount(stats.likeCount);
+                setHasLiked(stats.hasLiked);
+            }
+
+            // Update Comment Likes and sync
+            setComments(prev => prev.map(c => {
+                if (c.isOptimistic) return c; // Don't override sending comments
+                const serverStat = stats.comments.find(sc => sc.id === c.id);
+                if (serverStat) {
+                    return {
+                        ...c,
+                        hasLiked: serverStat.hasLiked,
+                        _count: { ...c._count, likes: serverStat.likeCount }
+                    };
+                }
+                return c;
+            }));
+        } catch (error) {
+            console.error("Stats fetching error", error);
+        }
+    }, [postId, isLiking]);
+
+    useEffect(() => {
+        const intervalId = setInterval(fetchStats, 5000);
+        return () => clearInterval(intervalId);
+    }, [fetchStats]);
 
     const handleLike = async () => {
         if (isLiking) return;
