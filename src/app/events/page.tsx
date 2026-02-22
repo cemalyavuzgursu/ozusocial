@@ -9,9 +9,9 @@ import Navbar from "@/components/layout/Navbar";
 
 export const dynamic = "force-dynamic";
 
-export default async function EventsPage(props: { searchParams: Promise<{ sort?: string }> }) {
+export default async function EventsPage(props: any) {
     const searchParams = await props.searchParams;
-    const sortOrder = searchParams.sort === 'desc' ? 'desc' : 'asc';
+    const sortOrder = searchParams?.sort === 'desc' ? 'desc' : 'asc';
 
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) redirect("/");
