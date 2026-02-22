@@ -20,11 +20,20 @@ export default async function PostList({ feedType = 'all' }: PostListProps) {
     if (session?.user?.email) {
         currentUserObj = await prisma.user.findUnique({
             where: { email: session.user.email },
-            select: { id: true }
+            select: { id: true, universityDomain: true }
         });
     }
 
-    let whereClause = {};
+    let whereClause: any = {};
+
+    if (feedType === 'all' && currentUserObj?.universityDomain) {
+        whereClause = {
+            author: {
+                universityDomain: currentUserObj.universityDomain,
+                isPrivate: false
+            }
+        };
+    }
 
     if (feedType === 'following' && session?.user?.email) {
         const currentUser = await prisma.user.findUnique({
@@ -51,7 +60,10 @@ export default async function PostList({ feedType = 'all' }: PostListProps) {
             likes: { select: { userId: true } },
             comments: {
                 orderBy: { createdAt: "asc" },
-                include: { user: { select: { name: true, image: true, id: true } } }
+                include: {
+                    user: { select: { name: true, image: true, id: true } },
+                    _count: { select: { likes: true } }
+                }
             },
             _count: { select: { likes: true, comments: true } }
         },

@@ -27,12 +27,35 @@ export const authOptions: NextAuthOptions = {
                 return true; // Kullanıcı zaten admin paneli/veritabanı içindeyse anında izin verilir.
             }
 
-            // KURAL 2: SADECE EĞİTİM MAİLLERİNE İZİN VER (.edu.tr veya .edu uzantılı olmalı)
-            if (
-                user.email.endsWith(".edu.tr") ||
-                user.email.endsWith(".edu") ||
-                user.email === "deneme@gmail.com" // Test hesabı beyaz listesi
-            ) {
+            // KURAL 2: EXTRACT DOMAIN AND CHECK IN DATABASE
+            const userDomain = user.email.split('@')[1];
+
+            // Allow override for test user
+            if (user.email === "deneme@gmail.com") {
+                return true;
+            }
+
+            const allowedUniversity = await prisma.university.findUnique({
+                where: { domain: userDomain }
+            });
+
+            if (allowedUniversity) {
+                // If this user is just being created, or already exists but doesn't have a domain set,
+                // Prisma adapter handles the creation *after* this callback returns true.
+                // However, `signIn` callback runs before the adapter creates the user in the database.
+                // So we can check if they exist. If they do, update them.
+                // If they don't, we can't update them yet, but we will fix that by updating their domain in the session callback or just trying to upsert it asynchronously.
+
+                // Let's try to update existing user
+                try {
+                    await prisma.user.update({
+                        where: { email: user.email },
+                        data: { universityDomain: userDomain }
+                    });
+                } catch (e) {
+                    // User might not exist yet (first login), that's fine.
+                }
+
                 return true;
             }
 

@@ -5,10 +5,11 @@ import { prisma } from "@/lib/prisma";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 import Link from "next/link";
-import { approveRequest, rejectRequest } from "@/app/actions/admin";
+import { approveRequest, rejectRequest, getUniversities } from "@/app/actions/admin";
 import UserSearch from "@/components/admin/UserSearch";
 import CreateUserForm from "@/components/admin/CreateUserForm";
 import TicketManager from "@/components/admin/TicketManager";
+import UniversityManager from "@/components/admin/UniversityManager";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,8 @@ export default async function AdminDashboardPage() {
             user: { select: { id: true, name: true, email: true } }
         }
     });
+
+    const universities = await getUniversities();
 
     return (
         <div className="min-h-screen bg-neutral-950 text-neutral-100 p-4 md:p-8">
@@ -138,6 +141,8 @@ export default async function AdminDashboardPage() {
                 </div>
 
                 <CreateUserForm />
+
+                <UniversityManager initialUniversities={universities} />
 
                 <TicketManager initialTickets={allTickets as any} />
 

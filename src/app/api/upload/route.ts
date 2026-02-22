@@ -52,7 +52,10 @@ export async function POST(request: Request) {
         await writeFile(filepath, buffer);
 
         // URL döndür
-        const fileUrl = `/uploads/${filename}`;
+        const baseUrl = process.env.NEXTAUTH_URL || "";
+        // baseUrl'in sonunda '/' varsa veya fileUrl'in başında '/' varsa çifte '//' olmasını engelle
+        const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+        const fileUrl = `${cleanBaseUrl}/uploads/${filename}`;
 
         return NextResponse.json({ url: fileUrl }, { status: 200 });
     } catch (error) {

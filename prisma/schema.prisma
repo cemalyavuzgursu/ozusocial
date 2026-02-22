@@ -11,6 +11,15 @@ datasource db {
 }
 
 // NextAuth Required Models
+model University {
+  id        String   @id @default(cuid())
+  name      String
+  domain    String   @unique
+  createdAt DateTime @default(now())
+  
+  users     User[]
+}
+
 model Account {
   id                 String  @id @default(cuid())
   userId             String
@@ -56,6 +65,8 @@ model User {
   // Yeni Aşama 13 Alanları (Gizlilik ve Onboarding)
   birthYear          Int?
   department         String?
+  universityDomain   String?
+  university         University? @relation(fields: [universityDomain], references: [domain])
   isOnboarded        Boolean   @default(false)
   showProfileDetails Boolean   @default(true) // Geriye dönük uyumluluk veya genel toggle için tutulabilir
   showDepartment     Boolean   @default(true)

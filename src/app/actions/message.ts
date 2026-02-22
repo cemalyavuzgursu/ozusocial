@@ -87,3 +87,14 @@ export async function sendMessage(conversationId: string, content: string) {
         data: { updatedAt: new Date() }
     });
 }
+
+export async function getMessages(conversationId: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) return [];
+
+    return await prisma.message.findMany({
+        where: { conversationId },
+        orderBy: { createdAt: "asc" },
+        include: { sender: { select: { id: true, name: true, image: true } } }
+    });
+}

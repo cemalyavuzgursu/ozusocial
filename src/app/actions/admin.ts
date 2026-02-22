@@ -166,3 +166,63 @@ export async function createUser(data: { name: string; email: string; role: "STU
     revalidatePath("/admin");
     return true;
 }
+
+// === ÜNİVERSİTE YÖNETİMİ ===
+
+export async function getUniversities() {
+    const adminSession = await getAdminSession();
+    if (!adminSession?.username) {
+        throw new Error("Yetkisiz işlem.");
+    }
+
+    return await prisma.university.findMany({
+        orderBy: { name: 'asc' },
+        include: { _count: { select: { users: true } } }
+    });
+}
+
+export async function createUniversity(name: string, domain: string) {
+    const adminSession = await getAdminSession();
+    if (!adminSession?.username) {
+        throw new Error("Yetkisiz işlem.");
+    }
+
+    if (!name || !domain) {
+        throw new Error("Üniversite adı ve uzantısı zorunludur.");
+    }
+
+    // Clean domain (e.g. remove @ if user types @ozu.edu.tr)
+    const cleanDomain = domain.replace('@', '').trim().toLowerCase();
+
+    const existing = await prisma.university.findUnique({
+        where: { domain: cleanDomain }
+    });
+
+    if (existing) {
+        throw new Error("Bu uzantıya sahip bir üniversite zaten mevcut.");
+    }
+
+    await prisma.university.create({
+        data: {
+            name: name.trim(),
+            domain: cleanDomain
+        }
+    });
+
+    revalidatePath("/admin");
+    return true;
+}
+
+export async function deleteUniversity(id: string) {
+    const adminSession = await getAdminSession();
+    if (!adminSession?.username) {
+        throw new Error("Yetkisiz işlem.");
+    }
+
+    await prisma.university.delete({
+        where: { id }
+    });
+
+    revalidatePath("/admin");
+    return true;
+}

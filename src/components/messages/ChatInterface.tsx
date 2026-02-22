@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { sendMessage } from "@/app/actions/message";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { sendMessage, getMessages } from "@/app/actions/message";
 import { format } from "date-fns";
 
 export default function ChatInterface({ initialMessages, currentUserId, conversationId }: any) {
@@ -11,10 +11,45 @@ export default function ChatInterface({ initialMessages, currentUserId, conversa
     const [isSending, setIsSending] = useState(false);
     const bottomRef = useRef<HTMLDivElement>(null);
 
+    // Auto-scroll logic
     useEffect(() => {
-        // En alta in
-        bottomRef.current?.scrollIntoView();
-    }, [messages]);
+        // Sadece yeni mesaj geldiğinde veya ilk yüklemede kaydır
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages.length]);
+
+    // Polling logic
+    const fetchMessages = useCallback(async () => {
+        try {
+            const latestMessages = await getMessages(conversationId);
+            // Sadece server'dan gelen mesajları kaydet. Eğer kullanıcının henüz gönderilmemiş (optimistic) mesajı varsa, 
+            // sunucudan geleni aldığında optimistic olan zaten sunucuda var olacağından üzerine yazılır.
+            setMessages((prev: any) => {
+                // Optimistic mesajları bul (id'si temp- ile başlayanlar)
+                const optimisticMessages = prev.filter((m: any) => m.isOptimistic);
+
+                // Server'dan gelen mesajların ID'lerini bir Set'e al
+                const serverMessageIds = new Set(latestMessages.map((m: any) => m.id));
+
+                // Hala server'a gitmemiş gibi görünen optimistic mesajları tut
+                // (Eğer server'dan aynı content ve yakın tarihte bir mesaj geldiyse optimistic olanı silebiliriz ama basitlik için ID kontrolü yapıyoruz)
+                // Daha iyi bir UX için, server'dan veri gelince tüm optimisticleri ezip yerine gerçek veriyi koyuyoruz.
+
+                // En temiz yaklaşım: Eğer isSending true ise optimistic mesajları koru, değilse sadece server verisini kullan.
+                if (isSending) {
+                    return [...latestMessages, ...optimisticMessages];
+                }
+                return latestMessages;
+            });
+        } catch (error) {
+            console.error("Mesajlar çekilirken hata:", error);
+        }
+    }, [conversationId, isSending]);
+
+    useEffect(() => {
+        const intervalId = setInterval(fetchMessages, 3000); // 3 saniyede bir kontrol et
+
+        return () => clearInterval(intervalId); // Component unmount olduğunda temizle
+    }, [fetchMessages]);
 
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
