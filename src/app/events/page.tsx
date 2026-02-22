@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getUniversityFromEmail } from "@/lib/university";
 import EventCard from "@/components/events/EventCard";
 import CreateEventButton from "@/app/events/CreateEventButton";
+import EventSortDropdown from "@/components/events/EventSortDropdown";
 import Navbar from "@/components/layout/Navbar";
 
 export const dynamic = "force-dynamic";
@@ -61,17 +62,7 @@ export default async function EventsPage(props: any) {
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <form className="flex items-center gap-2">
-                            <select
-                                name="sort"
-                                defaultValue={sortOrder}
-                                onChange={(e) => e.target.form?.submit()}
-                                className="bg-neutral-100 dark:bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-rose-500 rounded-xl px-4 py-2 text-sm text-neutral-900 dark:text-neutral-100 cursor-pointer"
-                            >
-                                <option value="asc">Önce Yaklaşanlar</option>
-                                <option value="desc">Önce İleri Tarihliler</option>
-                            </select>
-                        </form>
+                        <EventSortDropdown sortOrder={sortOrder} />
                         {user.role === "CLUB" && (
                             <CreateEventButton />
                         )}
