@@ -10,6 +10,7 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
     const [error, setError] = useState<string | null>(null);
     const [mediaFile, setMediaFile] = useState<File | null>(null);
     const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+    const [content, setContent] = useState("");
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
@@ -61,6 +62,7 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
             await createPost(formData);
 
             formRef.current?.reset();
+            setContent("");
             handleRemoveMedia();
         } catch (err: any) {
             setError(err.message || "Bir hata oluştu.");
@@ -87,6 +89,8 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
                     <div className="flex-grow">
                         <textarea
                             name="content"
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
                             placeholder="Kampüste neler oluyor? Paylaş!"
                             className="w-full bg-transparent text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 text-lg resize-none outline-none border-b border-transparent focus:border-rose-500 transition-colors focus:ring-0 min-h-[60px]"
                             maxLength={500}
@@ -139,7 +143,7 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
 
                     <button
                         type="submit"
-                        disabled={isSubmitting || (!mediaFile && !formRef.current?.content?.value)}
+                        disabled={isSubmitting || (!mediaFile && !content.trim())}
                         className="group relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                     >
                         {isSubmitting ? (
