@@ -62,6 +62,7 @@ export default async function PostList({ feedType = 'all' }: PostListProps) {
                 orderBy: { createdAt: "asc" },
                 include: {
                     user: { select: { name: true, image: true, id: true } },
+                    likes: { select: { userId: true } },
                     _count: { select: { likes: true } }
                 }
             },

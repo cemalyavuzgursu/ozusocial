@@ -3,7 +3,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_noStore as noStore } from "next/cache";
 
 export async function getAllowedUsersForMessages() {
     const session = await getServerSession(authOptions);
@@ -89,6 +89,7 @@ export async function sendMessage(conversationId: string, content: string) {
 }
 
 export async function getMessages(conversationId: string) {
+    noStore(); // Polling request should not be cached!
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) return [];
 
