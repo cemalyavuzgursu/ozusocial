@@ -65,20 +65,22 @@ export async function getOrCreateConversation(targetUserId: string) {
     return newConv.id;
 }
 
-export async function sendMessage(conversationId: string, content: string) {
+export async function sendMessage(conversationId: string, content: string, fileUrl?: string, fileType?: string) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) throw new Error("Giriş yapmalısınız!");
 
     const me = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!me) throw new Error("Kullanıcı bulunamadı.");
 
-    if (!content || content.trim() === "") return;
+    if ((!content || content.trim() === "") && !fileUrl) return;
 
     await prisma.message.create({
         data: {
             content: content.trim(),
             senderId: me.id,
-            conversationId
+            conversationId,
+            fileUrl: fileUrl || null,
+            fileType: fileType || null
         }
     });
 

@@ -12,10 +12,11 @@ datasource db {
 
 // NextAuth Required Models
 model University {
-  id        String   @id @default(cuid())
-  name      String
-  domain    String   @unique
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  domain      String   @unique
+  departments String?  // JSON array stringified
+  createdAt   DateTime @default(now())
   
   users     User[]
 }
@@ -74,6 +75,7 @@ model User {
   showBirthYear      Boolean   @default(true)
   isPrivate          Boolean   @default(false)
   isBanned           Boolean   @default(false)
+  banExpiresAt       DateTime? // Süreli ban bitiş tarihi
 
   // Takip Sistemi
   followedBy    User[]   @relation("UserFollows")
@@ -208,6 +210,8 @@ model Conversation {
 model Message {
   id             String       @id @default(cuid())
   content        String
+  fileUrl        String?
+  fileType       String?      // "IMAGE" or "DOCUMENT"
   createdAt      DateTime     @default(now())
   isRead         Boolean      @default(false)
   

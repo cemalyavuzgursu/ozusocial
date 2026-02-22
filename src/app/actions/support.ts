@@ -71,3 +71,12 @@ export async function updateTicketStatus(ticketId: string, status: string) {
     revalidatePath(`/support/${ticketId}`);
     revalidatePath("/support");
 }
+
+// Live Update for ticket messages
+export async function getSupportMessages(ticketId: string) {
+    return await prisma.supportMessage.findMany({
+        where: { ticketId },
+        orderBy: { createdAt: "asc" },
+        include: { sender: { select: { id: true, name: true, image: true, role: true } } }
+    });
+}

@@ -10,12 +10,22 @@ export default async function OnboardingPage() {
 
     const user = await prisma.user.findUnique({
         where: { email: session.user.email },
-        select: { isOnboarded: true, isBanned: true }
+        select: {
+            isOnboarded: true,
+            isBanned: true,
+            university: {
+                select: { departments: true }
+            }
+        }
     });
 
     if (!user) redirect("/");
     if (user.isBanned) redirect("/auth/error?error=Banned");
     if (user.isOnboarded) redirect("/feed");
+
+    const validDepartments = user.university?.departments
+        ? user.university.departments.split(',').map(d => d.trim()).filter(Boolean)
+        : [];
 
     return (
         <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex flex-col items-center justify-center p-4">
@@ -28,7 +38,26 @@ export default async function OnboardingPage() {
                 <form action={completeOnboarding} className="space-y-5">
                     <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Bölüm / Fakülte <span className="text-rose-500">*</span></label>
-                        <input required type="text" name="department" placeholder="Örn: Bilgisayar Mühendisliği" className="w-full bg-neutral-100 dark:bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-rose-500 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100" />
+                        {validDepartments.length > 0 ? (
+                            <div className="relative">
+                                <select
+                                    required
+                                    name="department"
+                                    className="w-full bg-neutral-100 dark:bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-rose-500 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100 appearance-none"
+                                    defaultValue=""
+                                >
+                                    <option value="" disabled>Lütfen bölümünüzü seçin...</option>
+                                    {validDepartments.map((dep: string, i: number) => (
+                                        <option key={i} value={dep}>{dep}</option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-neutral-500">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
+                        ) : (
+                            <input required type="text" name="department" placeholder="Örn: Bilgisayar Mühendisliği" className="w-full bg-neutral-100 dark:bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-rose-500 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100" />
+                        )}
                     </div>
 
                     <div className="space-y-1.5">

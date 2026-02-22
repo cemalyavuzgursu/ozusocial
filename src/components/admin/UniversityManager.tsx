@@ -1,13 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { createUniversity, deleteUniversity } from "@/app/actions/admin";
+import { createUniversity, deleteUniversity, updateUniversityDepartments } from "@/app/actions/admin";
 
 export default function UniversityManager({ initialUniversities }: { initialUniversities: any[] }) {
     const [name, setName] = useState("");
     const [domain, setDomain] = useState("");
+    const [departments, setDepartments] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // Editing State
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editDepartments, setEditDepartments] = useState("");
+    const [editLoading, setEditLoading] = useState(false);
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -15,13 +21,26 @@ export default function UniversityManager({ initialUniversities }: { initialUniv
         setError("");
 
         try {
-            await createUniversity(name, domain);
+            await createUniversity(name, domain, departments);
             setName("");
             setDomain("");
+            setDepartments("");
         } catch (err: any) {
             setError(err.message || "Bilinmeyen bir hata oluştu.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleUpdateDepartments = async (id: string) => {
+        setEditLoading(true);
+        try {
+            await updateUniversityDepartments(id, editDepartments);
+            setEditingId(null);
+        } catch (err: any) {
+            alert(err.message || "Departmanlar güncellenirken hata oluştu.");
+        } finally {
+            setEditLoading(false);
         }
     };
 
@@ -77,10 +96,22 @@ export default function UniversityManager({ initialUniversities }: { initialUniv
                             placeholder="Örn: yildiz.edu.tr (Sadece uzantı)"
                         />
                     </div>
+                    <div className="flex-1 min-w-[300px] w-full mt-4 md:mt-0">
+                        <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                            Bölümler (Virgülle Ayırın) <span className="text-neutral-500 font-normal lowercase">- isteğe bağlı</span>
+                        </label>
+                        <input
+                            type="text"
+                            value={departments}
+                            onChange={(e) => setDepartments(e.target.value)}
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all outline-none"
+                            placeholder="Örn: Bilgisayar Mühendisliği, Hukuk, Tıp"
+                        />
+                    </div>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full md:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 transition-all"
+                        className="w-full md:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 transition-all mt-4 md:mt-0"
                     >
                         {loading ? "Ekleniyor..." : "Ekle"}
                     </button>
@@ -100,6 +131,38 @@ export default function UniversityManager({ initialUniversities }: { initialUniv
                                     <h3 className="font-semibold text-white break-words pr-8">{uni.name}</h3>
                                     <p className="text-emerald-400 text-sm font-mono mt-1">@{uni.domain}</p>
                                     <p className="text-xs text-neutral-500 mt-2">{uni._count?.users || 0} kayıtlı öğrenci</p>
+
+                                    {/* Departman Düzenleme Alanı */}
+                                    <div className="mt-4">
+                                        {editingId === uni.id ? (
+                                            <div className="flex flex-col gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={editDepartments}
+                                                    onChange={(e) => setEditDepartments(e.target.value)}
+                                                    className="w-full text-xs bg-neutral-900 border border-neutral-700 rounded p-2 text-white outline-none focus:border-emerald-500"
+                                                    placeholder="Virgülle ayrılmış bölümler..."
+                                                />
+                                                <div className="flex gap-2 justify-end">
+                                                    <button onClick={() => setEditingId(null)} className="text-xs px-2 py-1 text-neutral-400 hover:text-white">İptal</button>
+                                                    <button
+                                                        onClick={() => handleUpdateDepartments(uni.id)}
+                                                        disabled={editLoading}
+                                                        className="text-xs px-2 py-1 bg-emerald-600/20 text-emerald-500 rounded hover:bg-emerald-600/40 font-medium"
+                                                    >
+                                                        {editLoading ? "..." : "Kaydet"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="group cursor-pointer" onClick={() => { setEditingId(uni.id); setEditDepartments(uni.departments || ""); }}>
+                                                <p className="text-xs text-neutral-400 border-b border-dashed border-neutral-700 pb-1 mb-1 inline-block">Bölümler (Düzenle)</p>
+                                                <p className="text-xs text-neutral-500 line-clamp-2" title={uni.departments || "Bölüm eklenmemiş."}>
+                                                    {uni.departments || <span className="italic opacity-50">Bölüm eklenmemiş.</span>}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-neutral-800 flex justify-end">
                                     <button

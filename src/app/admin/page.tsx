@@ -40,13 +40,59 @@ export default async function AdminDashboardPage() {
         }
     });
 
-    // Raporları getir
-    const allReports = await prisma.report.findMany({
+    // Raporları getir ve hedef içeriklerini de almaya çalış
+    const basicReports = await prisma.report.findMany({
         orderBy: { createdAt: "desc" },
         include: {
             reporter: { select: { id: true, name: true, email: true } }
         }
     });
+
+    // Her raporun hedefini bul (Post ise içeriği, Comment ise içeriği, vb.)
+    const allReports = await Promise.all(basicReports.map(async (report) => {
+        let targetContentPreview = null;
+        let targetAuthor = null;
+
+        try {
+            if (report.targetType === "POST") {
+                const post = await prisma.post.findUnique({
+                    where: { id: report.targetId },
+                    select: { content: true, imageUrl: true, author: { select: { name: true, email: true } } }
+                });
+                if (post) {
+                    targetContentPreview = post.content || (post.imageUrl ? "[Görsel]" : "İçerik yok");
+                    targetAuthor = post.author.name || post.author.email;
+                }
+            } else if (report.targetType === "COMMENT") {
+                const comment = await prisma.comment.findUnique({
+                    where: { id: report.targetId },
+                    select: { content: true, user: { select: { name: true, email: true } } }
+                });
+                if (comment) {
+                    targetContentPreview = comment.content;
+                    targetAuthor = comment.user.name || comment.user.email;
+                }
+            } else if (report.targetType === "USER") {
+                const user = await prisma.user.findUnique({
+                    where: { id: report.targetId },
+                    select: { name: true, email: true, bio: true }
+                });
+                if (user) {
+                    targetContentPreview = `Bio: ${user.bio || 'Yok'}`;
+                    targetAuthor = user.name || user.email;
+                }
+            }
+        } catch (e) {
+            // Hedef silinmiş olabilir
+            targetContentPreview = "[İçerik Bulunamadı / Silinmiş]";
+        }
+
+        return {
+            ...report,
+            targetContentPreview,
+            targetAuthor
+        };
+    }));
 
     const universities = await getUniversities();
 

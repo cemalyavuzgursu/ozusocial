@@ -15,6 +15,19 @@ export async function createReport(targetType: "POST" | "COMMENT" | "USER", targ
     });
     if (!user) throw new Error("Kullanıcı bulunamadı");
 
+    // Prevent duplicate reports for the same target that are still pending
+    const existingReport = await prisma.report.findFirst({
+        where: {
+            reporterId: user.id,
+            targetId,
+            status: "PENDING"
+        }
+    });
+
+    if (existingReport) {
+        throw new Error("Bu içeriği zaten raporladınız ve henüz incelenmedi.");
+    }
+
     await prisma.report.create({
         data: {
             reporterId: user.id,

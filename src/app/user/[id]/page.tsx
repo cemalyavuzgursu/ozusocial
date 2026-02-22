@@ -101,7 +101,7 @@ export default async function UserProfilePage(
                         </div>
 
                         <div className="mb-2 flex items-center gap-2 z-10">
-                            <UserActionsMenu userId={targetUser.id} />
+                            <UserActionsMenu userId={targetUser.id} isOwnProfile={currentUser?.id === targetUser.id} />
                             <FollowButton targetUserId={targetUser.id} initialStatus={initialStatus} />
                         </div>
                     </div>

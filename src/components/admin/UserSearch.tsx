@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { searchUsers, toggleBanUser, deleteUser, changeUserRole } from "@/app/actions/admin";
 import Link from "next/link";
 
@@ -18,16 +18,28 @@ export default function UserSearch() {
     const [results, setResults] = useState<SearchedUser[]>([]);
     const [isPending, startTransition] = useTransition();
 
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (!query.trim()) {
+                setResults([]);
+                return;
+            }
+            startTransition(async () => {
+                try {
+                    const res = await searchUsers(query);
+                    setResults(res as SearchedUser[]);
+                } catch (error) {
+                    console.error("Arama hatası", error);
+                }
+            });
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timeoutId);
+    }, [query]);
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        startTransition(async () => {
-            try {
-                const res = await searchUsers(query);
-                setResults(res as SearchedUser[]);
-            } catch (error) {
-                console.error("Arama hatası", error);
-            }
-        });
+        // Zaten useEffect ile otomatik aranıyor, form submitini boş bırakabiliriz
     };
 
     const handleBanToggle = async (userId: string) => {

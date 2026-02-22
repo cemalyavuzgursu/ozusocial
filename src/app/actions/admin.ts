@@ -175,13 +175,32 @@ export async function getUniversities() {
         throw new Error("Yetkisiz işlem.");
     }
 
-    return await prisma.university.findMany({
+    const universities = await prisma.university.findMany({
         orderBy: { name: 'asc' },
         include: { _count: { select: { users: true } } }
     });
+
+    // Geçici olarak: SQLite LIKE veya doğrudan string alan eşleşmesiyle sayıyı manuel bulup enjekte edebiliriz
+    // veya zaten @ozu.edu.tr şeklinde tutuluyorsa (universityDomain ile), `_count.users` doğru da çalışabilir.
+    // Ancak daha önce `universityDomain` alanı doğru şekilde map'lenmemiş olabilir. 
+    // Manuel count çalıştıralım:
+
+    const enriched = await Promise.all(universities.map(async (u: any) => {
+        const count = await prisma.user.count({
+            where: {
+                email: { endsWith: `@${u.domain}` }
+            }
+        });
+        return {
+            ...u,
+            _count: { users: count }
+        };
+    }));
+
+    return enriched;
 }
 
-export async function createUniversity(name: string, domain: string) {
+export async function createUniversity(name: string, domain: string, departments?: string) {
     const adminSession = await getAdminSession();
     if (!adminSession?.username) {
         throw new Error("Yetkisiz işlem.");
@@ -205,7 +224,25 @@ export async function createUniversity(name: string, domain: string) {
     await prisma.university.create({
         data: {
             name: name.trim(),
-            domain: cleanDomain
+            domain: cleanDomain,
+            departments: departments ? departments.trim() : null
+        }
+    });
+
+    revalidatePath("/admin");
+    return true;
+}
+
+export async function updateUniversityDepartments(id: string, departments: string) {
+    const adminSession = await getAdminSession();
+    if (!adminSession?.username) {
+        throw new Error("Yetkisiz işlem.");
+    }
+
+    await prisma.university.update({
+        where: { id },
+        data: {
+            departments: departments ? departments.trim() : null
         }
     });
 

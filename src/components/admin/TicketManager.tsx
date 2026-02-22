@@ -23,10 +23,12 @@ type Ticket = {
         content: string;
         isAdmin: boolean;
         createdAt: Date;
+        sender?: { id: string; name: string | null; image: string | null; role: string | null; };
     }[];
 };
 
 import TicketMessageForm from "@/components/support/TicketMessageForm";
+import SupportChatInterface from "@/components/support/SupportChatInterface";
 
 export default function TicketManager({ initialTickets }: { initialTickets: Ticket[] }) {
     const [tickets, setTickets] = useState(initialTickets);
@@ -146,23 +148,12 @@ export default function TicketManager({ initialTickets }: { initialTickets: Tick
                                             Mesaj Geçmişi
                                         </h3>
                                     </div>
-                                    <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
-                                        {ticket.messages.length === 0 && (
-                                            <p className="text-sm text-neutral-500 text-center py-4">Henüz mesaj yok.</p>
-                                        )}
-                                        {ticket.messages.map(msg => (
-                                            <div key={msg.id} className={`flex ${msg.isAdmin ? 'justify-end' : 'justify-start'}`}>
-                                                <div className={`max-w-[85%] rounded-xl px-4 py-2 text-sm ${msg.isAdmin
-                                                        ? 'bg-indigo-600 text-white rounded-br-none'
-                                                        : 'bg-neutral-800 text-neutral-200 border border-neutral-700 rounded-bl-none'
-                                                    }`}>
-                                                    <p className="whitespace-pre-wrap">{msg.content}</p>
-                                                    <div className={`text-[10px] mt-1 ${msg.isAdmin ? 'text-indigo-200 text-right' : 'text-neutral-500 text-right'}`}>
-                                                        {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true, locale: tr })}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
+                                    <div className="flex-1 overflow-hidden min-h-[300px] flex flex-col bg-neutral-900">
+                                        <SupportChatInterface
+                                            ticketId={ticket.id}
+                                            initialMessages={ticket.messages}
+                                            isAdmin={true}
+                                        />
                                     </div>
                                     <div className="p-4 bg-neutral-900/80 border-t border-neutral-800 shrink-0">
                                         <TicketMessageForm ticketId={ticket.id} isAdmin={true} />

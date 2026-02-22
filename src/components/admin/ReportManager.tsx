@@ -18,6 +18,8 @@ type Report = {
         name: string | null;
         email: string | null;
     };
+    targetContentPreview?: string | null;
+    targetAuthor?: string | null;
 };
 
 export default function ReportManager({ initialReports }: { initialReports: Report[] }) {
@@ -82,14 +84,14 @@ export default function ReportManager({ initialReports }: { initialReports: Repo
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${report.targetType === 'POST' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
-                                                report.targetType === 'COMMENT' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                                                    'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                            report.targetType === 'COMMENT' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                                'bg-rose-500/10 text-rose-400 border-rose-500/20'
                                             }`}>
                                             {report.targetType === 'POST' ? 'GÖNDERİ' : report.targetType === 'COMMENT' ? 'YORUM' : 'KULLANICI'}
                                         </span>
                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${report.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                                                report.status === 'RESOLVED' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
-                                                    'bg-neutral-500/10 text-neutral-400 border-neutral-500/20'
+                                            report.status === 'RESOLVED' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                                                'bg-neutral-500/10 text-neutral-400 border-neutral-500/20'
                                             }`}>
                                             {report.status === 'PENDING' ? 'Bekliyor' : report.status === 'RESOLVED' ? 'Çözüldü' : 'Reddedildi'}
                                         </span>
@@ -137,8 +139,24 @@ export default function ReportManager({ initialReports }: { initialReports: Repo
                             </div>
 
                             <div className="bg-neutral-950/50 p-4 rounded-xl border border-neutral-800/80 mt-2">
-                                <p className="text-sm font-medium text-neutral-400 mb-1">Şikayet Nedeni:</p>
-                                <p className="text-sm text-neutral-200 whitespace-pre-wrap">{report.reason}</p>
+                                <div className="mb-4 pb-4 border-b border-neutral-800/50">
+                                    <p className="text-xs font-semibold text-rose-400 mb-1 uppercase tracking-wider">Kullanıcının Şikayet Nedeni:</p>
+                                    <p className="text-sm text-neutral-200 whitespace-pre-wrap">{report.reason}</p>
+                                </div>
+
+                                <div>
+                                    <p className="text-xs font-semibold text-neutral-500 mb-2 uppercase tracking-wider">Şikayet Edilen İçerik/Kişi:</p>
+                                    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 relative overflow-hidden">
+                                        {report.targetAuthor && (
+                                            <p className="text-[10px] text-neutral-500 mb-1 font-mono">{report.targetAuthor}</p>
+                                        )}
+                                        <p className="text-sm text-neutral-300 italic line-clamp-3">
+                                            {report.targetContentPreview
+                                                ? `"${report.targetContentPreview}"`
+                                                : <span className="text-neutral-600">[İçerik bulunamadı veya silinmiş]</span>}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     ))}
