@@ -17,12 +17,14 @@ interface SettingsFormProps {
         showDepartment: boolean;
         showBirthYear: boolean;
         role: string;
+        bio: string | null;
     };
 }
 
 export default function SettingsForm({ user }: SettingsFormProps) {
     const router = useRouter();
     const [name, setName] = useState(user.name || "");
+    const [bio, setBio] = useState(user.bio || "");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -118,7 +120,8 @@ export default function SettingsForm({ user }: SettingsFormProps) {
                 department: department.trim() || undefined,
                 birthYear: birthYear ? parseInt(birthYear) : undefined,
                 showDepartment,
-                showBirthYear
+                showBirthYear,
+                bio: bio.trim() || undefined
             });
 
             setMessage({ type: 'success', text: 'Profiliniz başarıyla güncellendi.' });
@@ -202,6 +205,20 @@ export default function SettingsForm({ user }: SettingsFormProps) {
                     required
                     className="w-full px-5 py-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-800 focus:border-rose-500 focus:bg-white dark:focus:bg-neutral-900 focus:ring-4 focus:ring-rose-500/10 transition-all text-neutral-900 dark:text-neutral-100 outline-none font-medium"
                 />
+            </div>
+
+            {/* Biyografi Bölümü */}
+            <div className="flex flex-col gap-2">
+                <label htmlFor="bio" className="text-sm font-bold text-neutral-800 dark:text-neutral-200">Hakkımda / Biyografi</label>
+                <textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    maxLength={160}
+                    placeholder="Kendinizden veya ilgi alanlarınızdan bahsedin..."
+                    className="w-full px-5 py-4 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-800 focus:border-rose-500 focus:bg-white dark:focus:bg-neutral-900 focus:ring-4 focus:ring-rose-500/10 transition-all text-neutral-900 dark:text-neutral-100 outline-none font-medium resize-none min-h-[100px]"
+                />
+                <span className="text-xs text-neutral-500 ml-1">{bio.length}/160 karakter</span>
             </div>
 
             {/* Eğitim Bilgileri */}

@@ -10,6 +10,7 @@ import UserSearch from "@/components/admin/UserSearch";
 import CreateUserForm from "@/components/admin/CreateUserForm";
 import TicketManager from "@/components/admin/TicketManager";
 import UniversityManager from "@/components/admin/UniversityManager";
+import ReportManager from "@/components/admin/ReportManager";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,16 @@ export default async function AdminDashboardPage() {
     const allTickets = await prisma.supportTicket.findMany({
         orderBy: { createdAt: "desc" },
         include: {
-            user: { select: { id: true, name: true, email: true } }
+            user: { select: { id: true, name: true, email: true } },
+            messages: { orderBy: { createdAt: "asc" } }
+        }
+    });
+
+    // Raporları getir
+    const allReports = await prisma.report.findMany({
+        orderBy: { createdAt: "desc" },
+        include: {
+            reporter: { select: { id: true, name: true, email: true } }
         }
     });
 
@@ -143,6 +153,8 @@ export default async function AdminDashboardPage() {
                 <CreateUserForm />
 
                 <UniversityManager initialUniversities={universities} />
+
+                <ReportManager initialReports={allReports as any} />
 
                 <TicketManager initialTickets={allTickets as any} />
 

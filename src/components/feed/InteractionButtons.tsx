@@ -1,11 +1,11 @@
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { toggleLike, addComment, toggleCommentLike, editComment, deleteComment, getPostStats } from "@/app/actions/interaction";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
+import ReportModal from "@/components/ui/ReportModal";
 
 interface InteractionButtonsProps {
     postId: string;
@@ -36,6 +36,7 @@ export default function InteractionButtons({ postId, initialLikeCount, initialHa
 
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editCommentText, setEditCommentText] = useState("");
+    const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
 
     const fetchStats = useCallback(async () => {
         try {
@@ -265,7 +266,15 @@ export default function InteractionButtons({ postId, initialLikeCount, initialHa
 
                                     {/* Yorum Beğenme Butonu */}
                                     {!comment.isOptimistic && editingCommentId !== comment.id && (
-                                        <div className="flex justify-end mt-1">
+                                        <div className="flex justify-end mt-1 gap-3">
+                                            {currentUserId && comment.userId !== currentUserId && (
+                                                <button
+                                                    onClick={() => setReportingCommentId(comment.id)}
+                                                    className="flex items-center gap-1.5 text-[11px] font-medium text-neutral-400 hover:text-rose-500 transition-colors"
+                                                >
+                                                    Raporla
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => handleCommentLike(comment.id)}
                                                 className={`flex items-center gap-1.5 text-[11px] font-medium transition-colors ${comment.hasLiked ? 'text-rose-500' : 'text-neutral-500 hover:text-rose-500'}`}
@@ -295,6 +304,15 @@ export default function InteractionButtons({ postId, initialLikeCount, initialHa
                             Gönder
                         </button>
                     </form>
+
+                    {reportingCommentId && (
+                        <ReportModal
+                            isOpen={true}
+                            onClose={() => setReportingCommentId(null)}
+                            targetType="COMMENT"
+                            targetId={reportingCommentId}
+                        />
+                    )}
                 </div>
             )}
         </div>

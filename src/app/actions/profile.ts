@@ -15,6 +15,7 @@ export async function updateProfile(data: {
     birthYear?: number;
     showDepartment?: boolean;
     showBirthYear?: boolean;
+    bio?: string;
 }) {
     const session = await getServerSession(authOptions);
 
@@ -35,6 +36,7 @@ export async function updateProfile(data: {
             ...(data.birthYear !== undefined && { birthYear: data.birthYear }),
             ...(data.showDepartment !== undefined && { showDepartment: data.showDepartment }),
             ...(data.showBirthYear !== undefined && { showBirthYear: data.showBirthYear }),
+            ...(data.bio !== undefined && { bio: data.bio }),
         },
     });
 

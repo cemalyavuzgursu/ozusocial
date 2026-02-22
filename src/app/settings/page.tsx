@@ -25,7 +25,8 @@ export default async function SettingsPage() {
             showDepartment: true,
             showBirthYear: true,
             role: true,
-            isOnboarded: true
+            isOnboarded: true,
+            bio: true
         }
     });
 

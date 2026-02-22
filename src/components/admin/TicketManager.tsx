@@ -18,11 +18,20 @@ type Ticket = {
         name: string | null;
         email: string | null;
     };
+    messages: {
+        id: string;
+        content: string;
+        isAdmin: boolean;
+        createdAt: Date;
+    }[];
 };
+
+import TicketMessageForm from "@/components/support/TicketMessageForm";
 
 export default function TicketManager({ initialTickets }: { initialTickets: Ticket[] }) {
     const [tickets, setTickets] = useState(initialTickets);
     const [filter, setFilter] = useState("ALL");
+    const [expandedTicketId, setExpandedTicketId] = useState<string | null>(null);
 
     const filteredTickets = tickets.filter(t => filter === "ALL" ? true : t.status === filter);
 
@@ -98,6 +107,12 @@ export default function TicketManager({ initialTickets }: { initialTickets: Tick
                                 </div>
 
                                 <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setExpandedTicketId(expandedTicketId === ticket.id ? null : ticket.id)}
+                                        className="px-3 py-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg text-xs font-semibold transition-colors border border-indigo-500/20"
+                                    >
+                                        {expandedTicketId === ticket.id ? "Gizle" : "Yanıtla (" + ticket.messages.length + ")"}
+                                    </button>
                                     <Link href={`/user/${ticket.user.id}`} target="_blank" className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg text-xs font-semibold transition-colors border border-neutral-700">Profil</Link>
                                     {ticket.status === 'OPEN' ? (
                                         <button onClick={() => handleStatusChange(ticket.id, 'RESOLVED')} className="px-3 py-1.5 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white rounded-lg text-xs font-semibold transition-colors border border-green-500/20">Çözüldü İşaretle</button>
@@ -121,6 +136,39 @@ export default function TicketManager({ initialTickets }: { initialTickets: Tick
                                     </div>
                                 )}
                             </div>
+
+                            {/* Chat Thread */}
+                            {expandedTicketId === ticket.id && (
+                                <div className="mt-4 bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden flex flex-col max-h-[500px]">
+                                    <div className="p-4 bg-neutral-800/50 border-b border-neutral-800 shrink-0">
+                                        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                                            <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                                            Mesaj Geçmişi
+                                        </h3>
+                                    </div>
+                                    <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
+                                        {ticket.messages.length === 0 && (
+                                            <p className="text-sm text-neutral-500 text-center py-4">Henüz mesaj yok.</p>
+                                        )}
+                                        {ticket.messages.map(msg => (
+                                            <div key={msg.id} className={`flex ${msg.isAdmin ? 'justify-end' : 'justify-start'}`}>
+                                                <div className={`max-w-[85%] rounded-xl px-4 py-2 text-sm ${msg.isAdmin
+                                                        ? 'bg-indigo-600 text-white rounded-br-none'
+                                                        : 'bg-neutral-800 text-neutral-200 border border-neutral-700 rounded-bl-none'
+                                                    }`}>
+                                                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                                                    <div className={`text-[10px] mt-1 ${msg.isAdmin ? 'text-indigo-200 text-right' : 'text-neutral-500 text-right'}`}>
+                                                        {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true, locale: tr })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="p-4 bg-neutral-900/80 border-t border-neutral-800 shrink-0">
+                                        <TicketMessageForm ticketId={ticket.id} isAdmin={true} />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>

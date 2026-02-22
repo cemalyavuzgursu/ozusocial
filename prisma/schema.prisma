@@ -63,6 +63,7 @@ model User {
   roleRequests  RoleRequest[] // OzuSocial: Kullanıcının başvuru geçmişi
 
   // Yeni Aşama 13 Alanları (Gizlilik ve Onboarding)
+  bio                String?   // Profil açıklaması
   birthYear          Int?
   department         String?
   universityDomain   String?
@@ -91,8 +92,10 @@ model User {
   comments      Comment[]
   commentLikes  CommentLike[]
 
-  // Yardım Talepleri
+  // Yardım Talepleri ve Raporlar
   supportTickets SupportTicket[]
+  supportMessages SupportMessage[]
+  reportsSent    Report[]       @relation("UserReportsSent")
 }
 
 model VerificationToken {
@@ -229,7 +232,7 @@ model FollowRequest {
   @@unique([senderId, receiverId])
 }
 
-// Yeni: Yardım ve Destek Ticket (Aşama 20)
+// Yeni: Yardım ve Destek Ticket (Aşama 20 / Phase 4 Extended)
 model SupportTicket {
   id          String   @id @default(cuid())
   userId      String
@@ -240,4 +243,33 @@ model SupportTicket {
   status      String   @default("OPEN") // OPEN, RESOLVED, CLOSED
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  messages    SupportMessage[]
+}
+
+model SupportMessage {
+  id          String   @id @default(cuid())
+  content     String
+  createdAt   DateTime @default(now())
+  isAdmin     Boolean  @default(false) // Eğer Admin attıysa true
+  
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  senderId    String?  // Kullanıcı ID. Null ise sistem/admin olarak kabul edilebilir ama adminin de ID'si olabilir
+  sender      User?    @relation(fields: [senderId], references: [id], onDelete: SetNull)
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  targetType  String   // "USER", "POST", "COMMENT"
+  targetId    String   // İlgili nesnenin ID'si
+  reason      String   // Kullanıcının girdiği açıklama
+  status      String   @default("PENDING") // PENDING, RESOLVED, REJECTED
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reporterId  String
+  reporter    User     @relation("UserReportsSent", fields: [reporterId], references: [id], onDelete: Cascade)
 }

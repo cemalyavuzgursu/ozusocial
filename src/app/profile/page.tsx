@@ -114,6 +114,11 @@ export default async function ProfilePage() {
                                 </span>
                             )}
                         </div>
+                        {user.bio && (
+                            <div className="mt-4 max-w-xl mx-auto sm:mx-0 text-center sm:text-left text-neutral-600 dark:text-neutral-400 text-sm whitespace-pre-wrap leading-relaxed">
+                                {user.bio}
+                            </div>
+                        )}
                     </div>
 
                     <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-neutral-800 flex gap-10 justify-center sm:justify-start">

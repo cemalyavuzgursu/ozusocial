@@ -26,18 +26,24 @@ export default function Navbar() {
                     ÖzüSocial
                 </Link>
 
-                <nav className="flex items-center gap-4">
+                <nav className="flex items-center gap-2 sm:gap-4">
                     <Link
                         href="/feed"
-                        className={`font-medium transition-colors ${pathname === '/feed' ? 'text-rose-600 dark:text-rose-500' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'}`}
+                        className={`p-2 rounded-full transition-colors flex items-center justify-center ${pathname === '/feed' ? 'text-rose-600 dark:text-rose-500 bg-rose-50 dark:bg-rose-500/10' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+                        title="Ana Akış"
                     >
-                        Ana Akış
+                        <svg className="w-6 h-6" fill={pathname === '/feed' ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
                     </Link>
                     <Link
                         href="/events"
-                        className={`font-medium transition-colors ${pathname === '/events' ? 'text-rose-600 dark:text-rose-500' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'}`}
+                        className={`p-2 rounded-full transition-colors flex items-center justify-center ${pathname === '/events' ? 'text-rose-600 dark:text-rose-500 bg-rose-50 dark:bg-rose-500/10' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+                        title="Etkinlikler"
                     >
-                        Etkinlikler
+                        <svg className="w-6 h-6" fill={pathname === '/events' ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
                     </Link>
                     <MessageNavIcon />
                 </nav>

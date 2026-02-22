@@ -2,8 +2,9 @@ import AuthButton from "@/components/auth/AuthButton";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-
 import { prisma } from "@/lib/prisma";
+import TypewriterEffect from "@/components/home/TypewriterEffect";
+import Link from "next/link";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -30,7 +31,7 @@ export default async function Home() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
           </span>
-          Sadece Özyeğinlilere Özel
+          Sadece Üniversite Öğrencilerine Özel
         </div>
 
         <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-neutral-900 dark:text-white drop-shadow-sm">
@@ -41,18 +42,19 @@ export default async function Home() {
           Katıl.
         </h1>
 
-        <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed">
-          Sadece <strong>@ozyegin.edu.tr</strong> e-posta adresinle giriş yap, kampüsteki etkinliklerden haberdar ol, kulüpleri keşfet ve arkadaşlarınla iletişime geç.
+        <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed flex flex-wrap items-center justify-center gap-1">
+          Sadece <TypewriterEffect /> e-posta adresinle giriş yap, kampüsteki etkinliklerden haberdar ol, kulüpleri keşfet ve arkadaşlarınla iletişime geç.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mt-6">
           <AuthButton />
 
-          <button
+          <Link
+            href="/help"
             className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-sm font-semibold text-neutral-700 bg-white ring-1 ring-inset ring-neutral-200 hover:bg-neutral-50 dark:bg-neutral-900 dark:text-neutral-300 dark:ring-neutral-800 dark:hover:bg-neutral-800 transition-all duration-300"
           >
             Nasıl Çalışır?
-          </button>
+          </Link>
         </div>
 
         {/* Feature Highlights Mini */}

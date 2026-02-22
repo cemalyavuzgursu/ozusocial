@@ -8,6 +8,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import PostContent from "./PostContent";
 import InteractionButtons from "./InteractionButtons";
 import ClubBadge from "@/components/ui/ClubBadge";
+import PostActionsMenu from "@/components/ui/PostActionsMenu";
 
 interface PostListProps {
     feedType?: 'all' | 'following';
@@ -106,9 +107,12 @@ export default async function PostList({ feedType = 'all' }: PostListProps) {
                                 </Link>
                             </div>
                         </div>
-                        <time className="text-xs text-neutral-400 font-medium">
-                            {formatDistanceToNow(post.createdAt, { addSuffix: true, locale: tr })}
-                        </time>
+                        <div className="flex items-center gap-2">
+                            <time className="text-xs text-neutral-400 font-medium">
+                                {formatDistanceToNow(post.createdAt, { addSuffix: true, locale: tr })}
+                            </time>
+                            <PostActionsMenu postId={post.id} isOwner={post.author.email === session?.user?.email} />
+                        </div>
                     </div>
 
                     <div className="pl-[52px]">

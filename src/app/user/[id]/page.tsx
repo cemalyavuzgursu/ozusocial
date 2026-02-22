@@ -12,6 +12,7 @@ import PostContent from "@/components/feed/PostContent";
 import { getAdminSession } from "@/lib/auth";
 import { getUniversityFromEmail } from "@/lib/university";
 import ClubBadge from "@/components/ui/ClubBadge";
+import UserActionsMenu from "@/components/ui/UserActionsMenu";
 
 export const dynamic = "force-dynamic";
 
@@ -99,7 +100,8 @@ export default async function UserProfilePage(
                             )}
                         </div>
 
-                        <div className="mb-2">
+                        <div className="mb-2 flex items-center gap-2 z-10">
+                            <UserActionsMenu userId={targetUser.id} />
                             <FollowButton targetUserId={targetUser.id} initialStatus={initialStatus} />
                         </div>
                     </div>
@@ -130,6 +132,11 @@ export default async function UserProfilePage(
                                 </span>
                             )}
                         </div>
+                        {targetUser.bio && (
+                            <div className="mt-4 max-w-xl mx-auto sm:mx-0 text-center sm:text-left text-neutral-600 dark:text-neutral-400 text-sm whitespace-pre-wrap leading-relaxed">
+                                {targetUser.bio}
+                            </div>
+                        )}
                     </div>
 
                     <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-neutral-800 flex gap-10 justify-center sm:justify-start">
