@@ -16,6 +16,7 @@ interface EditProfileModalProps {
         birthYear: number | null;
         showDepartment: boolean;
         showBirthYear: boolean;
+        bio?: string | null;
     };
     onClose: () => void;
 }
@@ -23,6 +24,7 @@ interface EditProfileModalProps {
 export default function EditProfileModal({ user, onClose }: EditProfileModalProps) {
     const router = useRouter();
     const [name, setName] = useState(user.name || "");
+    const [bio, setBio] = useState(user.bio || "");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -126,7 +128,8 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
                 department: department.trim() || undefined,
                 birthYear: birthYear ? parseInt(birthYear) : undefined,
                 showDepartment,
-                showBirthYear
+                showBirthYear,
+                bio: bio.trim() || undefined
             });
 
             router.refresh(); // Sayfayı yenile ve yeni verileri çek
@@ -210,6 +213,25 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
                                 maxLength={50}
                                 required
                                 className="w-full px-4 py-3 rounded-xl bg-neutral-100 dark:bg-neutral-800 border-transparent focus:border-rose-500 focus:bg-white dark:focus:bg-neutral-900 focus:ring-0 transition-colors text-neutral-900 dark:text-neutral-100 outline-none"
+                            />
+                        </div>
+
+                        {/* Bio / Hakkımda Bölümü */}
+                        <div className="flex flex-col gap-2">
+                            <div className="flex justify-between items-center">
+                                <label htmlFor="bio" className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Hakkımda</label>
+                                <span className={`text-xs ${bio.length > 150 ? 'text-rose-500' : 'text-neutral-400'}`}>
+                                    {bio.length}/160
+                                </span>
+                            </div>
+                            <textarea
+                                id="bio"
+                                value={bio}
+                                onChange={(e) => setBio(e.target.value)}
+                                maxLength={160}
+                                placeholder="Kendinden kısaca bahset..."
+                                rows={3}
+                                className="w-full px-4 py-3 rounded-xl bg-neutral-100 dark:bg-neutral-800 border-transparent focus:border-rose-500 focus:bg-white dark:focus:bg-neutral-900 focus:ring-0 transition-colors text-neutral-900 dark:text-neutral-100 outline-none resize-none custom-scrollbar"
                             />
                         </div>
 

@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-const domains = ["ozyegin.edu.tr", "boun.edu.tr", "itu.edu.tr", "ku.edu.tr", "yildiz.edu.tr", "gsu.edu.tr", "edu.tr"];
-
-export default function TypewriterEffect() {
+export default function TypewriterEffect({ domains }: { domains: string[] }) {
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
     const [currentText, setCurrentText] = useState("");
     const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
+        if (!domains || domains.length === 0) return;
         const word = domains[currentWordIndex];
         const typingSpeed = isDeleting ? 50 : 100;
 

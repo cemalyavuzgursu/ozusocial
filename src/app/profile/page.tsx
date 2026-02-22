@@ -81,7 +81,8 @@ export default async function ProfilePage() {
                                     department: user.department,
                                     birthYear: user.birthYear,
                                     showDepartment: user.showDepartment,
-                                    showBirthYear: user.showBirthYear
+                                    showBirthYear: user.showBirthYear,
+                                    bio: user.bio
                                 }}
                                 isOwnProfile={true}
                             />

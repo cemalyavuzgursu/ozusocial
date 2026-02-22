@@ -19,6 +19,12 @@ export default async function Home() {
     else redirect("/onboarding");
   }
 
+  const universities = await prisma.university.findMany({
+    select: { domain: true }
+  });
+
+  const domains = universities.length > 0 ? universities.map(u => u.domain) : ["edu.tr"];
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-8 pb-20 sm:p-20 relative overflow-hidden bg-white dark:bg-neutral-950">
       {/* Decorative Background Elements */}
@@ -43,7 +49,7 @@ export default async function Home() {
         </h1>
 
         <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed flex flex-wrap items-center justify-center gap-1">
-          Sadece <TypewriterEffect /> e-posta adresinle giriş yap, kampüsteki etkinliklerden haberdar ol, kulüpleri keşfet ve arkadaşlarınla iletişime geç.
+          Sadece <TypewriterEffect domains={domains} /> e-posta adresinle giriş yap, kampüsteki etkinliklerden haberdar ol, kulüpleri keşfet ve arkadaşlarınla iletişime geç.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mt-6">

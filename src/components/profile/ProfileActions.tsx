@@ -14,6 +14,7 @@ interface ProfileActionsProps {
         birthYear: number | null;
         showDepartment: boolean;
         showBirthYear: boolean;
+        bio?: string | null;
     };
     isOwnProfile: boolean;
 }
