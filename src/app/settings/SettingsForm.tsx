@@ -19,9 +19,10 @@ interface SettingsFormProps {
         role: string;
         bio: string | null;
     };
+    universityDepartments: string[];
 }
 
-export default function SettingsForm({ user }: SettingsFormProps) {
+export default function SettingsForm({ user, universityDepartments }: SettingsFormProps) {
     const router = useRouter();
     const [name, setName] = useState(user.name || "");
     const [bio, setBio] = useState(user.bio || "");
@@ -227,11 +228,30 @@ export default function SettingsForm({ user }: SettingsFormProps) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="flex flex-col gap-2">
                         <label htmlFor="department" className="text-sm font-semibold text-neutral-700 dark:text-neutral-400">Bölümünüz</label>
-                        <input
-                            id="department" type="text" value={department} onChange={(e) => setDepartment(e.target.value)}
-                            placeholder="Örn: Hukuk Fakültesi"
-                            className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-800 focus:border-rose-500 transition-all text-sm text-neutral-900 dark:text-neutral-100 outline-none"
-                        />
+                        {universityDepartments.length > 0 ? (
+                            <div className="relative">
+                                <select
+                                    id="department"
+                                    value={department}
+                                    onChange={(e) => setDepartment(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-800 focus:border-rose-500 transition-all text-sm text-neutral-900 dark:text-neutral-100 outline-none appearance-none cursor-pointer"
+                                >
+                                    <option value="">Bölüm seçin...</option>
+                                    {universityDepartments.map((dep, i) => (
+                                        <option key={i} value={dep}>{dep}</option>
+                                    ))}
+                                </select>
+                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-neutral-500">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
+                        ) : (
+                            <input
+                                id="department" type="text" value={department} onChange={(e) => setDepartment(e.target.value)}
+                                placeholder="Örn: Hukuk Fakültesi"
+                                className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-800 focus:border-rose-500 transition-all text-sm text-neutral-900 dark:text-neutral-100 outline-none"
+                            />
+                        )}
                         <label className="flex items-center gap-2 mt-1 cursor-pointer w-fit group">
                             <input type="checkbox" checked={showDepartment} onChange={(e) => setShowDepartment(e.target.checked)} className="rounded border-neutral-300 dark:border-neutral-700 text-rose-500 focus:ring-rose-500 bg-neutral-100 dark:bg-neutral-900 w-4 h-4" />
                             <span className="text-xs text-neutral-600 dark:text-neutral-400 group-hover:text-rose-500 transition-colors">Profilde Göster</span>

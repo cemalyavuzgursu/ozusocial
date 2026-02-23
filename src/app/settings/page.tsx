@@ -26,12 +26,17 @@ export default async function SettingsPage() {
             showBirthYear: true,
             role: true,
             isOnboarded: true,
-            bio: true
+            bio: true,
+            university: { select: { departments: true } }
         }
     });
 
     if (!user) redirect("/");
     if (!user.isOnboarded) redirect("/onboarding");
+
+    const universityDepartments = user.university?.departments
+        ? user.university.departments.split(',').map((d: string) => d.trim()).filter(Boolean)
+        : [];
 
     return (
         <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 px-4 sm:px-6">
@@ -46,7 +51,7 @@ export default async function SettingsPage() {
                         Kişisel bilgilerinizi, eğitim detaylarınızı ve hesabınızın gizlilik seçeneklerini buradan yönetebilirsiniz.
                     </p>
 
-                    <SettingsForm user={user} />
+                    <SettingsForm user={user} universityDepartments={universityDepartments} />
                 </div>
             </div>
         </div>
