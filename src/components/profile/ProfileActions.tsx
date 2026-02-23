@@ -16,10 +16,11 @@ interface ProfileActionsProps {
         showBirthYear: boolean;
         bio?: string | null;
     };
+    universityDepartments: string[];
     isOwnProfile: boolean;
 }
 
-export default function ProfileActions({ user, isOwnProfile }: ProfileActionsProps) {
+export default function ProfileActions({ user, universityDepartments, isOwnProfile }: ProfileActionsProps) {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // If this is not the user's own profile, we don't show the edit button (for now we assume it is)
@@ -35,7 +36,7 @@ export default function ProfileActions({ user, isOwnProfile }: ProfileActionsPro
             </button>
 
             {isEditModalOpen && (
-                <EditProfileModal user={user} onClose={() => setIsEditModalOpen(false)} />
+                <EditProfileModal user={user} universityDepartments={universityDepartments} onClose={() => setIsEditModalOpen(false)} />
             )}
         </>
     );

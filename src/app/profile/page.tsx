@@ -29,9 +29,16 @@ export default async function ProfilePage() {
             },
             _count: {
                 select: { followedBy: true, following: true }
+            },
+            university: {
+                select: { departments: true }
             }
         }
     });
+
+    const universityDepartments = user?.university?.departments
+        ? user.university.departments.split(',').map((d: string) => d.trim()).filter(Boolean)
+        : [];
 
     if (!user) {
         redirect("/");
@@ -84,6 +91,7 @@ export default async function ProfilePage() {
                                     showBirthYear: user.showBirthYear,
                                     bio: user.bio
                                 }}
+                                universityDepartments={universityDepartments}
                                 isOwnProfile={true}
                             />
                         </div>
