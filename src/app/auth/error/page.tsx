@@ -24,7 +24,7 @@ function AuthErrorContent() {
 
                 <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
                     {error === "AccessDenied"
-                        ? "Ooo hayır! ÖzüSocial kapalı devre bir sosyal ağdır. Yalnızca @ozyegin.edu.tr (veya ozu.edu.tr) uzantılı kurumsal öğrenci mailleriyle kayıt olabilirsiniz."
+                        ? "Ooo hayır! ÖzüSocial kapalı devre bir sosyal ağdır. Sisteme giriş yapabilmek için yöneticiler tarafından eklenmiş bir üniversitenin kurumsal e-posta adresiyle (örneğin @yildiz.edu.tr, @ozyegin.edu.tr vb.) giriş yapmanız gerekmektedir."
                         : "Giriş yaparken bir şeyler ters gitti. Lütfen geçerli bir üniversite hesabıyla tekrar deneyin."}
                 </p>
 
