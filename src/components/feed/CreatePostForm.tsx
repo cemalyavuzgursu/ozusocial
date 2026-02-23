@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element */
- 
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -108,10 +108,9 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
                                     </svg>
                                 </button>
                                 {mediaFile?.type.startsWith('video/') ? (
-                                    <video src={mediaPreview} controls className="max-h-64 object-contain w-full" />
+                                    <video src={mediaPreview} controls playsInline preload="metadata" className="max-h-64 w-full rounded-xl bg-black" />
                                 ) : (
-                                     
-                                    <img src={mediaPreview} alt="Preview" className="max-h-64 object-contain w-full" />
+                                    <img src={mediaPreview} alt="Önizleme" className="max-h-64 object-contain w-full" />
                                 )}
                             </div>
                         )}
@@ -124,7 +123,7 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
                     <div>
                         <input
                             type="file"
-                            accept="image/*,video/*"
+                            accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,video/mp4,video/quicktime,video/webm,video/x-msvideo,video/*,image/*"
                             className="hidden"
                             ref={fileInputRef}
                             onChange={handleFileChange}

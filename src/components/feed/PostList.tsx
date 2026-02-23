@@ -118,10 +118,16 @@ export default async function PostList({ feedType = 'all' }: PostListProps) {
                     <div className="pl-[52px]">
                         {post.imageUrl && (
                             /* eslint-disable-next-line @next/next/no-img-element */
-                            <img src={post.imageUrl} alt="Post image" className="w-full max-h-96 object-cover rounded-2xl mb-4 border border-neutral-200 dark:border-neutral-800" />
+                            <img src={post.imageUrl} alt="" className="w-full max-h-[500px] object-contain rounded-2xl mb-4 border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800" />
                         )}
                         {post.videoUrl && (
-                            <video src={post.videoUrl} controls className="w-full max-h-96 object-cover rounded-2xl mb-4 border border-neutral-200 dark:border-neutral-800" />
+                            <video
+                                src={post.videoUrl}
+                                controls
+                                playsInline
+                                preload="metadata"
+                                className="w-full max-h-[500px] rounded-2xl mb-4 border border-neutral-200 dark:border-neutral-800 bg-black"
+                            />
                         )}
 
                         <PostContent
