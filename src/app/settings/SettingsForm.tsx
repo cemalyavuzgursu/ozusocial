@@ -33,7 +33,7 @@ export default function SettingsForm({ user }: SettingsFormProps) {
 
     const [isPrivate, setIsPrivate] = useState(user.isPrivate);
     const [department, setDepartment] = useState(user.department || "");
-    const [birthYear, setBirthYear] = useState(user.birthYear?.toString() || "");
+    // birthYear is read-only — not editable after onboarding
     const [showDepartment, setShowDepartment] = useState(user.showDepartment ?? true);
     const [showBirthYear, setShowBirthYear] = useState(user.showBirthYear ?? true);
 
@@ -118,7 +118,6 @@ export default function SettingsForm({ user }: SettingsFormProps) {
                 isPrivate,
                 showProfileDetails: true,
                 department: department.trim() || undefined,
-                birthYear: birthYear ? parseInt(birthYear) : undefined,
                 showDepartment,
                 showBirthYear,
                 bio: bio.trim() || undefined
@@ -239,13 +238,13 @@ export default function SettingsForm({ user }: SettingsFormProps) {
                         </label>
                     </div>
 
+                    {/* Doğum Yılı — kilitli, sadece görünürlük tercihi değiştirilebilir */}
                     <div className="flex flex-col gap-2">
-                        <label htmlFor="birthYear" className="text-sm font-semibold text-neutral-700 dark:text-neutral-400">Doğum Yılınız</label>
-                        <input
-                            id="birthYear" type="number" value={birthYear} onChange={(e) => setBirthYear(e.target.value)}
-                            placeholder="Örn: 2003" min="1950" max={new Date().getFullYear()}
-                            className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-800 focus:border-rose-500 transition-all text-sm text-neutral-900 dark:text-neutral-100 outline-none"
-                        />
+                        <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-400">Doğum Yılınız</label>
+                        <div className="w-full px-4 py-3 rounded-xl bg-neutral-100/60 dark:bg-neutral-800/40 text-sm text-neutral-400 dark:text-neutral-500 select-none border border-dashed border-neutral-200 dark:border-neutral-700 flex items-center gap-2">
+                            <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                            {user.birthYear ? `${user.birthYear} (Değiştirilemez)` : "Belirtilmemiş"}
+                        </div>
                         <label className="flex items-center gap-2 mt-1 cursor-pointer w-fit group">
                             <input type="checkbox" checked={showBirthYear} onChange={(e) => setShowBirthYear(e.target.checked)} className="rounded border-neutral-300 dark:border-neutral-700 text-rose-500 focus:ring-rose-500 bg-neutral-100 dark:bg-neutral-900 w-4 h-4" />
                             <span className="text-xs text-neutral-600 dark:text-neutral-400 group-hover:text-rose-500 transition-colors">Profilde Göster</span>
