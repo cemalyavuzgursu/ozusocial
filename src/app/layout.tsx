@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ÖzüSocial | Sadece Kampüs",
+  title: "UniVibe | Sadece Kampüs",
   description: "Özyeğin Üniversitesi öğrencileri için özel sosyal ağ",
 };
 

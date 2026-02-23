@@ -23,7 +23,7 @@ export default function Navbar() {
         <header className="flex items-center justify-between bg-white dark:bg-neutral-900 px-6 py-4 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm sticky top-4 z-10 backdrop-blur-md bg-white/80 dark:bg-neutral-900/80 mb-6 w-full max-w-3xl mx-auto mt-4 md:mt-8">
             <div className="flex items-center gap-6">
                 <Link href="/feed" className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-rose-600 to-indigo-600 hover:opacity-80 transition-opacity">
-                    ÖzüSocial
+                    UniVibe
                 </Link>
 
                 <nav className="flex items-center gap-2 sm:gap-4">

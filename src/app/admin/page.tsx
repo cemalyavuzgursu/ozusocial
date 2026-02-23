@@ -106,7 +106,7 @@ export default async function AdminDashboardPage() {
                         A
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold">ÖzüSocial Admin</h1>
+                        <h1 className="text-xl font-bold">UniVibe Admin</h1>
                         <p className="text-xs text-neutral-400">Yönetim Paneli - {pendingRequests.length} Bekleyen İstek</p>
                     </div>
                 </div>

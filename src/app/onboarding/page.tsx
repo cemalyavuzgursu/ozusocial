@@ -65,7 +65,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: {
         <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl p-8 shadow-sm border border-neutral-200 dark:border-neutral-800 animate-in zoom-in-95 duration-500">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">ÖzüSocial&apos;a Hoş Geldin! 👋</h1>
+                    <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">UniVibe&apos;a Hoş Geldin! 👋</h1>
                     <p className="text-neutral-500 dark:text-neutral-400 text-sm">Seni daha yakından tanıyabilmemiz için profilini tamamla.</p>
                 </div>
 

@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-neutral-950 px-4">
             <div className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-white mb-2">ÖzüSocial Admin Merkezi</h1>
+                    <h1 className="text-2xl font-bold text-white mb-2">UniVibe Admin Merkezi</h1>
                     <p className="text-neutral-500 text-sm">Sistem yönetimine giriş yapın</p>
                 </div>
 

@@ -8,7 +8,7 @@ export default function HelpPage() {
         <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 px-4 sm:px-6 pb-20">
             <header className="py-6 flex items-center justify-between max-w-5xl mx-auto">
                 <Link href="/" className="px-4 py-2 rounded-full font-bold text-neutral-900 border border-neutral-200 bg-white hover:bg-neutral-50 dark:bg-neutral-900 dark:border-neutral-800 dark:text-white dark:hover:bg-neutral-800 transition-colors shadow-sm">
-                    ÖzüSocial Ana Sayfa
+                    UniVibe Ana Sayfa
                 </Link>
                 <AuthButton />
             </header>
