@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // NextAuth Required Models
@@ -55,7 +55,7 @@ model User {
   emailVerified DateTime?
   image         String?
   coverImage    String?   // OzuSocial: Profil arka plan resmi (Banner)
-  role          String    @default("STUDENT") // STUDENT veya CLUB (SQLite enums natively destegi zayıf olduğu için string)
+  role          String    @default("STUDENT") // STUDENT veya CLUB
   
   accounts      Account[]
   sessions      Session[]
@@ -64,7 +64,7 @@ model User {
   roleRequests  RoleRequest[] // OzuSocial: Kullanıcının başvuru geçmişi
 
   // Yeni Aşama 13 Alanları (Gizlilik ve Onboarding)
-  bio                String?   // Profil açıklaması
+  bio                String?   @db.Text // Profil açıklaması
   birthYear          Int?
   department         String?
   universityDomain   String?
@@ -112,7 +112,7 @@ model VerificationToken {
 // OzuSocial Custom Models
 model Post {
   id        String   @id @default(cuid())
-  content   String?
+  content   String?   @db.Text
   imageUrl  String?
   videoUrl  String?
   createdAt DateTime @default(now())
@@ -139,7 +139,7 @@ model Like {
 
 model Comment {
   id        String   @id @default(cuid())
-  content   String
+  content   String    @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -192,7 +192,7 @@ model RoleRequest {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  message     String?  // Başvuru sırasında eklenen not
+  message     String?  @db.Text // Başvuru sırasında eklenen not
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -210,7 +210,7 @@ model Conversation {
 
 model Message {
   id             String       @id @default(cuid())
-  content        String
+  content        String    @db.Text
   fileUrl        String?
   fileType       String?      // "IMAGE" or "DOCUMENT"
   createdAt      DateTime     @default(now())
@@ -243,7 +243,7 @@ model SupportTicket {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   category    String   // "Öneri", "Şikayet", "Teknik Destek", "Diğer"
-  description String
+  description String   @db.Text
   mediaUrl    String?  // İsteğe bağlı görsel veya video
   status      String   @default("OPEN") // OPEN, RESOLVED, CLOSED
   createdAt   DateTime @default(now())
@@ -254,7 +254,7 @@ model SupportTicket {
 
 model SupportMessage {
   id          String   @id @default(cuid())
-  content     String
+  content     String   @db.Text
   createdAt   DateTime @default(now())
   isAdmin     Boolean  @default(false) // Eğer Admin attıysa true
   
@@ -269,7 +269,7 @@ model Report {
   id          String   @id @default(cuid())
   targetType  String   // "USER", "POST", "COMMENT"
   targetId    String   // İlgili nesnenin ID'si
-  reason      String   // Kullanıcının girdiği açıklama
+  reason      String   @db.Text // Kullanıcının girdiği açıklama
   status      String   @default("PENDING") // PENDING, RESOLVED, REJECTED
   
   createdAt   DateTime @default(now())
