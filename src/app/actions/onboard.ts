@@ -23,6 +23,24 @@ export async function completeOnboarding(formData: FormData) {
         redirect("/onboarding?error=invalid_year");
     }
 
+    // 25 yaş kontrolü
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - birthYear;
+
+    if (age > 25) {
+        // Kullanıcıyı admin incelemesine al, sisteme alma
+        await prisma.user.update({
+            where: { email: session.user.email },
+            data: {
+                birthYear,
+                department,
+                isOnboarded: false,
+                isPendingAgeReview: true
+            }
+        });
+        redirect("/onboarding?status=pending_review");
+    }
+
     await prisma.user.update({
         where: { email: session.user.email },
         data: {

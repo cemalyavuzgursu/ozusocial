@@ -342,3 +342,62 @@ export async function getUniversityById(id: string) {
 
     return { university, users };
 }
+
+// === ŞÜPHELİ ONBOARDING (YAŞ İNCELEMESİ) ===
+
+export async function getSuspiciousOnboardingUsers() {
+    const adminSession = await getAdminSession();
+    if (!adminSession?.username) {
+        throw new Error("Yetkisiz işlem.");
+    }
+
+    const users = await prisma.user.findMany({
+        where: { isPendingAgeReview: true },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            birthYear: true,
+            department: true,
+            universityDomain: true,
+            university: { select: { name: true } }
+        },
+        orderBy: { email: 'asc' }
+    });
+
+    return users;
+}
+
+export async function approveAgeReview(userId: string) {
+    const adminSession = await getAdminSession();
+    if (!adminSession?.username) {
+        throw new Error("Yetkisiz işlem.");
+    }
+
+    await prisma.user.update({
+        where: { id: userId },
+        data: {
+            isOnboarded: true,
+            isPendingAgeReview: false
+        }
+    });
+
+    revalidatePath("/admin");
+    return true;
+}
+
+export async function rejectAgeReview(userId: string) {
+    const adminSession = await getAdminSession();
+    if (!adminSession?.username) {
+        throw new Error("Yetkisiz işlem.");
+    }
+
+    // Kullanıcıyı tamamen sil
+    await prisma.user.delete({
+        where: { id: userId }
+    });
+
+    revalidatePath("/admin");
+    return true;
+}

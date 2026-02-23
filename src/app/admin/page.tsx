@@ -5,12 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 import Link from "next/link";
-import { approveRequest, rejectRequest, getUniversities } from "@/app/actions/admin";
+import { approveRequest, rejectRequest, getUniversities, getSuspiciousOnboardingUsers } from "@/app/actions/admin";
 import UserSearch from "@/components/admin/UserSearch";
 import CreateUserForm from "@/components/admin/CreateUserForm";
 import TicketManager from "@/components/admin/TicketManager";
 import UniversityManager from "@/components/admin/UniversityManager";
 import ReportManager from "@/components/admin/ReportManager";
+import SuspiciousOnboardingManager from "@/components/admin/SuspiciousOnboardingManager";
 
 export const dynamic = "force-dynamic";
 
@@ -95,6 +96,7 @@ export default async function AdminDashboardPage() {
     }));
 
     const universities = await getUniversities();
+    const suspiciousUsers = await getSuspiciousOnboardingUsers();
 
     return (
         <div className="min-h-screen bg-neutral-950 text-neutral-100 p-4 md:p-8">
@@ -195,6 +197,8 @@ export default async function AdminDashboardPage() {
                         </div>
                     )}
                 </div>
+
+                <SuspiciousOnboardingManager initialUsers={suspiciousUsers} />
 
                 <CreateUserForm />
 
