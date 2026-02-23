@@ -175,29 +175,8 @@ export async function getUniversities() {
         throw new Error("Yetkisiz işlem.");
     }
 
-    // --- SELF HEALING YEDEĞİ (Eski hesaplar için) ---
-    const usersWithoutDomain = await prisma.user.findMany({
-        where: { universityDomain: null },
-        select: { id: true, email: true }
-    });
-
-    if (usersWithoutDomain.length > 0) {
-        for (const user of usersWithoutDomain) {
-            if (user.email) {
-                const domain = user.email.split('@')[1];
-                if (domain) {
-                    await prisma.user.update({
-                        where: { id: user.id },
-                        data: { universityDomain: domain.toLowerCase() }
-                    });
-                }
-            }
-        }
-    }
-
     const universities = await prisma.university.findMany({
-        orderBy: { name: 'asc' },
-        include: { _count: { select: { users: true } } }
+        orderBy: { name: 'asc' }
     });
 
     return universities;

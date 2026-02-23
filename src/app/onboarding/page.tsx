@@ -56,7 +56,19 @@ export default async function OnboardingPage() {
                                 </div>
                             </div>
                         ) : (
-                            <input required type="text" name="department" placeholder="Örn: Bilgisayar Mühendisliği" className="w-full bg-neutral-100 dark:bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-rose-500 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100" />
+                            <div className="relative">
+                                <select
+                                    required
+                                    disabled
+                                    name="department"
+                                    className="w-full bg-neutral-100 dark:bg-neutral-800 border-none outline-none rounded-xl px-4 py-3 text-sm text-rose-500 opacity-80 appearance-none cursor-not-allowed"
+                                >
+                                    <option value="">Üniversiteniz için henüz bölüm eklenmemiş.</option>
+                                </select>
+                                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-rose-500 opacity-50">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                </div>
+                            </div>
                         )}
                     </div>
 
@@ -65,8 +77,12 @@ export default async function OnboardingPage() {
                         <input required type="number" name="birthYear" min="1900" max={new Date().getFullYear()} placeholder="Örn: 2002" className="w-full bg-neutral-100 dark:bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-rose-500 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100" />
                     </div>
 
-                    <button type="submit" className="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 mt-8">
-                        Profili Tamamla ve Başla
+                    <button
+                        type="submit"
+                        disabled={validDepartments.length === 0}
+                        className={`w-full font-bold py-3 rounded-xl transition-all shadow-md mt-8 ${validDepartments.length === 0 ? 'bg-neutral-300 dark:bg-neutral-700 text-neutral-500 cursor-not-allowed' : 'bg-rose-500 hover:bg-rose-600 text-white hover:shadow-lg hover:-translate-y-0.5'}`}
+                    >
+                        {validDepartments.length === 0 ? "Bölüm bekleniyor..." : "Profili Tamamla ve Başla"}
                     </button>
                 </form>
             </div>
