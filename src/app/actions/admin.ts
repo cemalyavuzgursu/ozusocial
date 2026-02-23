@@ -176,7 +176,8 @@ export async function getUniversities() {
     }
 
     const universities = await prisma.university.findMany({
-        orderBy: { name: 'asc' }
+        orderBy: { name: 'asc' },
+        include: { _count: { select: { users: true } } }
     });
 
     return universities;
@@ -229,6 +230,53 @@ export async function updateUniversityDepartments(id: string, departments: strin
     });
 
     revalidatePath("/admin");
+    revalidatePath(`/admin/university/${id}`);
+    return true;
+}
+
+export async function updateUniversity(id: string, name: string, domain: string, departments: string) {
+    const adminSession = await getAdminSession();
+    if (!adminSession?.username) {
+        throw new Error("Yetkisiz işlem.");
+    }
+
+    if (!name || !domain) {
+        throw new Error("Üniversite adı ve uzantısı zorunludur.");
+    }
+
+    const cleanDomain = domain.replace('@', '').trim().toLowerCase();
+
+    // Check if domain is taken by ANOTHER university
+    const existing = await prisma.university.findFirst({
+        where: { domain: cleanDomain, id: { not: id } }
+    });
+
+    if (existing) {
+        throw new Error("Bu uzantıya sahip başka bir üniversite zaten mevcut.");
+    }
+
+    await prisma.university.update({
+        where: { id },
+        data: {
+            name: name.trim(),
+            domain: cleanDomain,
+            departments: departments ? departments.trim() : null
+        }
+    });
+
+    // Domain changed? We should ideally update users' universityDomain to match the new one, but for now we let NextAuth handle new logins or let the relational aspect ride. 
+    // Wait, users rely on `universityDomain`. If domain changes, they lose connection. 
+    // We update all users who had the old domain!
+    const oldUni = await prisma.university.findUnique({ where: { id }, select: { domain: true } });
+    if (oldUni && oldUni.domain !== cleanDomain) {
+        await prisma.user.updateMany({
+            where: { universityDomain: oldUni.domain },
+            data: { universityDomain: cleanDomain }
+        });
+    }
+
+    revalidatePath("/admin");
+    revalidatePath(`/admin/university/${id}`);
     return true;
 }
 
@@ -244,4 +292,32 @@ export async function deleteUniversity(id: string) {
 
     revalidatePath("/admin");
     return true;
+}
+
+export async function getUniversityById(id: string) {
+    const adminSession = await getAdminSession();
+    if (!adminSession?.username) {
+        throw new Error("Yetkisiz işlem.");
+    }
+
+    const university = await prisma.university.findUnique({
+        where: { id },
+        include: { _count: { select: { users: true } } }
+    });
+
+    if (!university) throw new Error("Üniversite bulunamadı.");
+
+    const users = await prisma.user.findMany({
+        where: { universityDomain: university.domain },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            role: true
+        },
+        orderBy: { name: 'asc' }
+    });
+
+    return { university, users };
 }
