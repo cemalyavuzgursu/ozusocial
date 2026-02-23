@@ -175,7 +175,7 @@ export async function getUniversities() {
         throw new Error("Yetkisiz işlem.");
     }
 
-    // --- SELF HEALING: Fix users with null universityDomain ---
+    // --- SELF HEALING YEDEĞİ (Eski hesaplar için) ---
     const usersWithoutDomain = await prisma.user.findMany({
         where: { universityDomain: null },
         select: { id: true, email: true }
@@ -196,22 +196,11 @@ export async function getUniversities() {
     }
 
     const universities = await prisma.university.findMany({
-        orderBy: { name: 'asc' }
+        orderBy: { name: 'asc' },
+        include: { _count: { select: { users: true } } }
     });
 
-    const enriched = await Promise.all(universities.map(async (u: any) => {
-        const count = await prisma.user.count({
-            where: {
-                email: { endsWith: `@${u.domain}` }
-            }
-        });
-        return {
-            ...u,
-            _count: { users: count }
-        };
-    }));
-
-    return enriched;
+    return universities;
 }
 
 export async function createUniversity(name: string, domain: string, departments?: string) {

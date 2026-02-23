@@ -70,6 +70,22 @@ export const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
     },
+    events: {
+        async createUser({ user }) {
+            // Kullanıcı veri tabanına eklendiği AN çalışan kod:
+            // "Kullanıcı ilk girişinde girdiği e-posta adresinin domainine göre sayaçta bir kişi daha arttır"
+            // Bunu Prisma Relations ile çözdüğümüz için, burada `universityDomain` alanını atamak yeterli.
+            if (user.email && user.id) {
+                const domain = user.email.split('@')[1];
+                if (domain) {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { universityDomain: domain.toLowerCase() }
+                    });
+                }
+            }
+        }
+    },
     secret: process.env.NEXTAUTH_SECRET,
 };
 
