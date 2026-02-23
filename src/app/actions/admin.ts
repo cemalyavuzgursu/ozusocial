@@ -196,11 +196,22 @@ export async function getUniversities() {
     }
 
     const universities = await prisma.university.findMany({
-        orderBy: { name: 'asc' },
-        include: { _count: { select: { users: true } } }
+        orderBy: { name: 'asc' }
     });
 
-    return universities;
+    const enriched = await Promise.all(universities.map(async (u: any) => {
+        const count = await prisma.user.count({
+            where: {
+                email: { endsWith: `@${u.domain}` }
+            }
+        });
+        return {
+            ...u,
+            _count: { users: count }
+        };
+    }));
+
+    return enriched;
 }
 
 export async function createUniversity(name: string, domain: string, departments?: string) {
