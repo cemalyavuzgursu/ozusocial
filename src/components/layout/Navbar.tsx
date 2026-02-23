@@ -5,7 +5,6 @@ import AuthButton from "@/components/auth/AuthButton";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import MessageNavIcon from "./MessageNavIcon";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export default function Navbar() {
     const pathname = usePathname();
@@ -69,7 +68,6 @@ export default function Navbar() {
             </div>
 
             <div className="hidden sm:flex items-center gap-2 sm:gap-4">
-                <ThemeToggle />
                 <AuthButton />
             </div>
         </header >

@@ -81,7 +81,7 @@ export default function UserSearch() {
     };
 
     return (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-xl mt-6">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl mt-6">
             <div className="p-6 border-b border-neutral-800 bg-neutral-900/50">
                 <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
                     <svg className="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

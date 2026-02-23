@@ -142,7 +142,7 @@ export default function UniversityManager({ initialUniversities }: { initialUniv
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full md:w-[150px] px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-lg disabled:opacity-50 transition-all mt-4 md:mt-0 h-[42px]"
+                            className="w-full md:w-auto whitespace-nowrap px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-lg disabled:opacity-50 transition-all mt-4 md:mt-0 h-[42px]"
                         >
                             {loading ? "Kaydediyor..." : "Okulu Kaydet"}
                         </button>
