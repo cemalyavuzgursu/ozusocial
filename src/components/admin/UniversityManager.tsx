@@ -94,79 +94,85 @@ export default function UniversityManager({ initialUniversities }: { initialUniv
             </div>
 
             <div className="p-6">
-                <form onSubmit={handleCreate} className="flex gap-4 items-end mb-8 flex-wrap md:flex-nowrap">
-                    <div className="flex-1 min-w-[200px]">
-                        <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
-                            Okul Adı
-                        </label>
-                        <input
-                            type="text"
-                            required
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all outline-none"
-                            placeholder="Örn: Yıldız Teknik Üniversitesi"
-                        />
-                    </div>
-                    <div className="flex-1 min-w-[200px]">
-                        <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
-                            E-posta Uzantısı
-                        </label>
-                        <input
-                            type="text"
-                            required
-                            value={domain}
-                            onChange={(e) => setDomain(e.target.value)}
-                            className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all outline-none"
-                            placeholder="Örn: yildiz.edu.tr (Sadece uzantı)"
-                        />
-                    </div>
-                    <div className="flex-1 min-w-[300px] w-full mt-4 md:mt-0">
-                        <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
-                            Bölümler <span className="text-neutral-500 font-normal lowercase">- isteğe bağlı</span>
-                        </label>
-                        <div className="flex gap-2 mb-2">
+                <form onSubmit={handleCreate} className="mb-8 bg-neutral-950/30 p-4 rounded-xl border border-neutral-800/50">
+                    <h3 className="text-sm font-semibold text-white mb-4">Yeni Okul Ekle</h3>
+                    <div className="flex flex-col md:flex-row gap-4 mb-4">
+                        <div className="flex-1">
+                            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                                Okul Adı
+                            </label>
                             <input
                                 type="text"
-                                value={departmentInput}
-                                onChange={(e) => setDepartmentInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        handleAddDepartment();
-                                    }
-                                }}
+                                required
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                                 className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all outline-none"
-                                placeholder="Örn: Bilgisayar Mühendisliği"
+                                placeholder="Örn: Yıldız Teknik Üniversitesi"
                             />
-                            <button
-                                type="button"
-                                onClick={handleAddDepartment}
-                                className="px-4 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-colors text-sm font-semibold"
-                            >
-                                Ekle
-                            </button>
                         </div>
-                        {departments.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                {departments.map(dep => (
-                                    <div key={dep} className="flex items-center gap-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded text-xs">
-                                        <span>{dep}</span>
-                                        <button type="button" onClick={() => handleRemoveDepartment(dep)} className="hover:text-rose-400 ml-1 cursor-pointer">
-                                            &times;
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <div className="flex-1">
+                            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                                E-posta Uzantısı
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                value={domain}
+                                onChange={(e) => setDomain(e.target.value)}
+                                className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all outline-none"
+                                placeholder="Örn: yildiz.edu.tr (Sadece uzantı)"
+                            />
+                        </div>
                     </div>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full md:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 transition-all mt-4 md:mt-0 h-[46px]"
-                    >
-                        {loading ? "Ekliyor..." : "Kaydet"}
-                    </button>
+
+                    <div className="flex flex-col md:flex-row gap-4 items-start md:items-end">
+                        <div className="flex-1 w-full">
+                            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                                Bölümler <span className="text-neutral-500 font-normal lowercase">- isteğe bağlı (birden fazla ekleyebilirsiniz)</span>
+                            </label>
+                            <div className="flex gap-2 mb-2">
+                                <input
+                                    type="text"
+                                    value={departmentInput}
+                                    onChange={(e) => setDepartmentInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleAddDepartment();
+                                        }
+                                    }}
+                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all outline-none"
+                                    placeholder="Örn: Bilgisayar Mühendisliği (Yazıp Enter'a veya Ekle'ye basın)"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleAddDepartment}
+                                    className="px-6 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-colors text-sm font-semibold h-[42px]"
+                                >
+                                    Ekle
+                                </button>
+                            </div>
+                            {departments.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2 bg-neutral-900/50 p-2 rounded-lg border border-neutral-800 min-h-[40px]">
+                                    {departments.map(dep => (
+                                        <div key={dep} className="flex items-center gap-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded text-xs">
+                                            <span>{dep}</span>
+                                            <button type="button" onClick={() => handleRemoveDepartment(dep)} className="hover:text-rose-400 ml-1 cursor-pointer">
+                                                &times;
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full md:w-[150px] px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 transition-all mt-4 md:mt-0 h-[42px]"
+                        >
+                            {loading ? "Kaydediyor..." : "Okulu Kaydet"}
+                        </button>
+                    </div>
                 </form>
 
                 {error && <div className="text-rose-500 text-sm mb-4 bg-rose-500/10 p-3 rounded">{error}</div>}
