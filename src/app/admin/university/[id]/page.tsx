@@ -3,7 +3,8 @@ import { getAdminSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import UniversityDetail from "./UniversityDetail"; // Client component
 
-export default async function UniversityPage({ params }: { params: { id: string } }) {
+export default async function UniversityPage(props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
     const adminSession = await getAdminSession();
     if (!adminSession?.username) {
         redirect("/admin/login");
