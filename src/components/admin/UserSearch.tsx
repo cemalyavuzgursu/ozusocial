@@ -17,6 +17,7 @@ export default function UserSearch() {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<SearchedUser[]>([]);
     const [isPending, startTransition] = useTransition();
+    const [openBanMenuId, setOpenBanMenuId] = useState<string | null>(null);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -42,11 +43,12 @@ export default function UserSearch() {
         // Zaten useEffect ile otomatik aranıyor, form submitini boş bırakabiliriz
     };
 
-    const handleBanToggle = async (userId: string) => {
+    const handleBanToggle = async (userId: string, durationDays: number | null = null) => {
         try {
-            const isBannedNow = await toggleBanUser(userId);
+            const isBannedNow = await toggleBanUser(userId, durationDays);
             // Update local state
             setResults(prev => prev.map(u => u.id === userId ? { ...u, isBanned: isBannedNow } : u));
+            setOpenBanMenuId(null);
         } catch (error) {
             console.error("Ban toggle hatası", error);
         }
@@ -152,15 +154,41 @@ export default function UserSearch() {
                                 >
                                     {user.role === "CLUB" ? "Öğrenci Yap" : "Kulüp Yap"}
                                 </button>
-                                <button
-                                    onClick={() => handleBanToggle(user.id)}
-                                    className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-semibold text-center transition-colors border ${user.isBanned
-                                        ? "bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500 hover:text-white"
-                                        : "bg-orange-500/10 text-orange-500 border-orange-500/20 hover:bg-orange-500 hover:text-white"
-                                        }`}
-                                >
-                                    {user.isBanned ? "Yasağı Kaldır" : "Yasakla (Ban)"}
-                                </button>
+                                <div className="relative flex-1 sm:flex-none">
+                                    {user.isBanned ? (
+                                        <button
+                                            onClick={() => handleBanToggle(user.id)}
+                                            className="w-full px-4 py-2 rounded-lg text-sm font-semibold text-center transition-colors border bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500 hover:text-white"
+                                        >
+                                            Yasağı Kaldır
+                                        </button>
+                                    ) : (
+                                        <>
+                                            <button
+                                                onClick={() => setOpenBanMenuId(openBanMenuId === user.id ? null : user.id)}
+                                                className="w-full px-4 py-2 rounded-lg text-sm font-semibold text-center transition-colors border bg-orange-500/10 text-orange-500 border-orange-500/20 hover:bg-orange-500 hover:text-white flex items-center justify-center gap-1"
+                                            >
+                                                Yasakla (Ban)
+                                                <svg className={`w-4 h-4 transition-transform ${openBanMenuId === user.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                            </button>
+
+                                            {openBanMenuId === user.id && (
+                                                <div className="absolute right-0 top-full mt-2 w-48 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl z-20 overflow-hidden">
+                                                    <div className="py-1 flex flex-col">
+                                                        <button onClick={() => handleBanToggle(user.id, 1)} className="px-4 py-2 text-sm text-left text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors">1 Gün</button>
+                                                        <button onClick={() => handleBanToggle(user.id, 7)} className="px-4 py-2 text-sm text-left text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors">1 Hafta</button>
+                                                        <button onClick={() => handleBanToggle(user.id, 30)} className="px-4 py-2 text-sm text-left text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors">1 Ay</button>
+                                                        <button onClick={() => handleBanToggle(user.id, 90)} className="px-4 py-2 text-sm text-left text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors">3 Ay</button>
+                                                        <button onClick={() => handleBanToggle(user.id, 180)} className="px-4 py-2 text-sm text-left text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors">6 Ay</button>
+                                                        <button onClick={() => handleBanToggle(user.id, 365)} className="px-4 py-2 text-sm text-left text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors">1 Yıl</button>
+                                                        <div className="border-t border-neutral-700 my-1"></div>
+                                                        <button onClick={() => handleBanToggle(user.id, null)} className="px-4 py-2 text-sm text-left text-rose-400 hover:bg-rose-500/20 transition-colors font-medium">Süresiz Yasakla</button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
                                 <button
                                     onClick={() => handleDelete(user.id)}
                                     className="flex-1 sm:flex-none px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-600 hover:text-white rounded-lg text-sm font-semibold text-center transition-colors"

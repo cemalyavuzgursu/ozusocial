@@ -79,7 +79,7 @@ export async function searchUsers(query: string) {
     return users;
 }
 
-export async function toggleBanUser(userId: string) {
+export async function toggleBanUser(userId: string, durationDays: number | null = null) {
     const adminSession = await getAdminSession();
     if (!adminSession?.username) {
         throw new Error("Yetkisiz işlem.");
@@ -88,13 +88,34 @@ export async function toggleBanUser(userId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error("Kullanıcı bulunamadı.");
 
+    let banExpiresAt = null;
+    let isBanned = !user.isBanned;
+
+    // If we're banning the user and a duration is provided, calculate the expiry date
+    if (isBanned && durationDays !== null) {
+        banExpiresAt = new Date();
+        banExpiresAt.setDate(banExpiresAt.getDate() + durationDays);
+    } // else: Unbanning, or Banning indefinitely (banExpiresAt = null)
+
+    // If the user is currently banned and no duration is passed or we just want to remove the ban
+    // we assume the intent is to unban if called without specific duration but they are already banned
+    if (user.isBanned) {
+        isBanned = false;
+        banExpiresAt = null;
+    } else {
+        isBanned = true;
+    }
+
     await prisma.user.update({
         where: { id: userId },
-        data: { isBanned: !user.isBanned }
+        data: {
+            isBanned,
+            banExpiresAt
+        }
     });
 
     revalidatePath("/admin");
-    return !user.isBanned;
+    return isBanned;
 }
 
 export async function deleteUser(userId: string) {
