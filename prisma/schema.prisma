@@ -194,6 +194,38 @@ model Event {
 
   authorId    String
   author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  form        EventForm?
+}
+
+// Kulüp Etkinlik Kayıt Formu
+model EventForm {
+  id        String         @id @default(cuid())
+  eventId   String         @unique
+  event     Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  fields    FormField[]
+  responses FormResponse[]
+  createdAt DateTime       @default(now())
+}
+
+model FormField {
+  id       String    @id @default(cuid())
+  formId   String
+  form     EventForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  label    String    // "Ad Soyad", "E-posta" vb.
+  type     String    // "TEXT", "EMAIL", "PHONE", "SELECT", "CHECKBOX"
+  options  String?   @db.Text // SELECT seçenekleri JSON dizisi
+  required Boolean  @default(true)
+  order    Int       @default(0)
+}
+
+model FormResponse {
+  id        String    @id @default(cuid())
+  formId    String
+  form      EventForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  userId    String?   // Kayıtlı kullanıcı ID
+  userName  String?   // Yanit anında kaydedilen isim
+  answers   Json      // { fieldId: cevap }
+  createdAt DateTime  @default(now())
 }
 
 // OzuSocial Admin & Roles

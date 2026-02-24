@@ -23,13 +23,21 @@ export default async function EventDetailPage(props: { params: Promise<{ id: str
 
     const event = await prisma.event.findUnique({
         where: { id: params.id },
-        include: { author: { select: { id: true, name: true, image: true, role: true } } }
+        include: {
+            author: { select: { id: true, name: true, image: true, role: true } },
+            form: { select: { id: true } }
+        }
     });
 
     if (!event) notFound();
 
     const isOwner = currentUser?.id === event.authorId;
     const isPast = new Date() > new Date(event.endDate);
+
+    // Kullanıcı daha önce form doldurdu mu?
+    const alreadyRegistered = event.form && currentUser ? await prisma.formResponse.findFirst({
+        where: { formId: event.form.id, userId: currentUser.id }
+    }) : null;
 
     return (
         <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 px-4 pb-16">
@@ -142,6 +150,30 @@ export default async function EventDetailPage(props: { params: Promise<{ id: str
                                 {event.description}
                             </p>
                         </div>
+
+                        {/* Kayıt Ol butonu */}
+                        {event.form && !isOwner && (
+                            <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                                {alreadyRegistered ? (
+                                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Kayıt Yapıldı
+                                    </div>
+                                ) : (
+                                    <Link
+                                        href={`/events/${event.id}/register`}
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        Kayıt Ol
+                                    </Link>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>

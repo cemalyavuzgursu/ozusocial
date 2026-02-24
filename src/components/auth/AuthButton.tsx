@@ -71,6 +71,16 @@ export default function AuthButton() {
                                 Profilim
                             </Link>
                             <Link
+                                href="/club"
+                                onClick={() => setIsDropdownOpen(false)}
+                                className="flex items-center w-full gap-3 px-3 py-2.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-2xl transition-colors"
+                            >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                Kulüp Paneli
+                            </Link>
+                            <Link
                                 href="/settings"
                                 onClick={() => setIsDropdownOpen(false)}
                                 className="flex items-center w-full gap-3 px-3 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl transition-colors"
