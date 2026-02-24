@@ -13,6 +13,7 @@ import { getAdminSession } from "@/lib/auth";
 import { getUniversityFromEmail } from "@/lib/university";
 import ClubBadge from "@/components/ui/ClubBadge";
 import UserActionsMenu from "@/components/ui/UserActionsMenu";
+import EventCard from "@/components/events/EventCard";
 
 export const dynamic = "force-dynamic";
 
@@ -54,9 +55,16 @@ export default async function UserProfilePage(
     });
 
     if (!targetUser) {
-        // Profil bulunamadıysa ana akışa at
         redirect("/feed");
     }
+
+    // Kulüp ise etkinliklerini de çek
+    const clubEvents = targetUser.role === "CLUB" ? await prisma.event.findMany({
+        where: { authorId: targetUser.id },
+        include: { author: { select: { id: true, name: true, image: true, role: true } } },
+        orderBy: { startDate: "desc" },
+        take: 6,
+    }) : [];
 
     const isFollowing = currentUser?.following.some((user: any) => user.id === params.id) || false;
     let initialStatus: "FOLLOWING" | "PENDING" | "UNFOLLOWED" = isFollowing ? "FOLLOWING" : "UNFOLLOWED";
@@ -224,6 +232,24 @@ export default async function UserProfilePage(
                         </div>
                     )}
                 </div>
+
+                {/* Kulüp Etkinlikleri */}
+                {targetUser.role === "CLUB" && (
+                    <div>
+                        <h2 className="text-xl font-bold px-2 mb-4 text-neutral-800 dark:text-neutral-200">Etkinlikler</h2>
+                        {clubEvents.length === 0 ? (
+                            <div className="text-center py-10 text-neutral-500 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 border-dashed">
+                                <p>Bu kulüp henüz etkinlik paylaşmamış.</p>
+                            </div>
+                        ) : (
+                            <div className="grid gap-4">
+                                {clubEvents.map((event: any) => (
+                                    <EventCard key={event.id} event={event} currentUserId={currentUser?.id || ""} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
 
             </main >
         </div >

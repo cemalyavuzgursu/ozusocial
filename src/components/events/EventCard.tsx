@@ -157,9 +157,20 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
                     )}
                 </div>
 
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-pre-wrap">
-                    {event.description}
-                </p>
+                <div>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-pre-wrap line-clamp-3">
+                        {event.description}
+                    </p>
+                    <Link
+                        href={`/events/${event.id}`}
+                        className="inline-flex items-center gap-1 mt-2 text-sm font-semibold text-rose-500 hover:text-rose-600 transition-colors"
+                    >
+                        Devamını Gör
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </Link>
+                </div>
             </div>
         </div>
     );
