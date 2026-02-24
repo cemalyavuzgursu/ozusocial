@@ -123,6 +123,9 @@ model Post {
   likes     Like[]
   comments  Comment[]
   media     PostMedia[]
+
+  linkedEventId String?
+  linkedEvent   Event?    @relation("PostLinkedEvent", fields: [linkedEventId], references: [id], onDelete: SetNull)
 }
 
 model PostMedia {
@@ -195,6 +198,7 @@ model Event {
   authorId    String
   author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   form        EventForm?
+  posts       Post[]   @relation("PostLinkedEvent")
 }
 
 // Kulüp Etkinlik Kayıt Formu

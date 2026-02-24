@@ -30,8 +30,10 @@ export async function createPost(formData: FormData) {
     if (legacyImageUrl && mediaItems.length === 0) mediaItems.push({ url: legacyImageUrl, type: "IMAGE" });
     if (legacyVideoUrl && mediaItems.length === 0) mediaItems.push({ url: legacyVideoUrl, type: "VIDEO" });
 
-    if (content.trim().length === 0 && mediaItems.length === 0) {
-        throw new Error("Gönderi metni veya medyası olmalıdır.");
+    const linkedEventId = (formData.get("linkedEventId") as string) || null;
+
+    if (content.trim().length === 0 && mediaItems.length === 0 && !linkedEventId) {
+        throw new Error("Gönderi metni, medyası veya etkinliği olmalıdır.");
     }
 
     if (content.length > 500) {
@@ -49,10 +51,10 @@ export async function createPost(formData: FormData) {
     await prisma.post.create({
         data: {
             content: content.trim(),
-            // Geriye dönük uyumluluk için ilk medyayı imageUrl/videoUrl'e de kaydet
             imageUrl: mediaItems.find(m => m.type === "IMAGE")?.url || null,
             videoUrl: mediaItems.find(m => m.type === "VIDEO")?.url || null,
             authorId: user.id,
+            linkedEventId: linkedEventId || null,
             media: {
                 create: mediaItems.map((m, idx) => ({
                     url: m.url,

@@ -2,8 +2,10 @@
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPost } from "@/app/actions/post";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 
 interface PreviewItem {
     file: File;
@@ -11,29 +13,47 @@ interface PreviewItem {
     type: "IMAGE" | "VIDEO";
 }
 
+interface EventOption {
+    id: string;
+    title: string;
+    imageUrl: string | null;
+    startDate: Date;
+    location: string;
+}
+
 export default function CreatePostForm({ userProfileImage }: { userProfileImage?: string | null }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [mediaItems, setMediaItems] = useState<PreviewItem[]>([]);
     const [content, setContent] = useState("");
+    const [linkedEvent, setLinkedEvent] = useState<EventOption | null>(null);
+    const [showEventPicker, setShowEventPicker] = useState(false);
+    const [events, setEvents] = useState<EventOption[]>([]);
+    const [eventsLoading, setEventsLoading] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
 
+    const fetchEvents = async () => {
+        if (events.length > 0) return; // Zaten yüklendi
+        setEventsLoading(true);
+        try {
+            const res = await fetch("/api/events/list");
+            if (res.ok) setEvents(await res.json());
+        } catch { }
+        finally { setEventsLoading(false); }
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (!files.length) return;
-
-        // Max 10 medya
         const remaining = 10 - mediaItems.length;
         const toAdd = files.slice(0, remaining);
-
         const newItems: PreviewItem[] = toAdd.map(file => ({
             file,
             preview: URL.createObjectURL(file),
             type: file.type.startsWith("video/") ? "VIDEO" : "IMAGE",
         }));
-
         setMediaItems(prev => [...prev, ...newItems]);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
@@ -55,21 +75,17 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
                 const uploadData = new FormData();
                 uploadData.append("file", item.file);
                 uploadData.append("type", "post-media");
-
-                const res = await fetch("/api/upload", {
-                    method: "POST",
-                    body: uploadData,
-                });
-
+                const res = await fetch("/api/upload", { method: "POST", body: uploadData });
                 if (!res.ok) {
                     const data = await res.json();
                     throw new Error(data.error || "Medya yüklenemedi.");
                 }
-
                 const data = await res.json();
                 formData.append(`mediaUrl_${i}`, data.url);
                 formData.append(`mediaType_${i}`, item.type);
             }
+
+            if (linkedEvent) formData.append("linkedEventId", linkedEvent.id);
 
             await createPost(formData);
 
@@ -77,6 +93,7 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
             setContent("");
             mediaItems.forEach(m => URL.revokeObjectURL(m.preview));
             setMediaItems([]);
+            setLinkedEvent(null);
         } catch (err: any) {
             setError(err.message || "Bir hata oluştu.");
         } finally {
@@ -142,6 +159,30 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
                             </div>
                         )}
 
+                        {/* Bağlı etkinlik önizleme */}
+                        {linkedEvent && (
+                            <div className="mt-3 flex items-center gap-3 p-3 rounded-2xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10">
+                                <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center">
+                                    {linkedEvent.imageUrl ? (
+                                        <img src={linkedEvent.imageUrl} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-200 truncate">{linkedEvent.title}</p>
+                                    <p className="text-xs text-indigo-500">{format(new Date(linkedEvent.startDate), "d MMM", { locale: tr })}</p>
+                                </div>
+                                <button type="button" onClick={() => setLinkedEvent(null)} className="p-1 text-indigo-400 hover:text-indigo-600 rounded-full">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        )}
+
                         {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
                     </div>
                 </div>
@@ -165,8 +206,62 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            Medya Ekle
+                            Medya
                         </button>
+
+                        {/* Etkinlik Ekle butonu */}
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onClick={() => { setShowEventPicker(v => !v); fetchEvents(); }}
+                                className={`p-2 rounded-full transition-colors flex items-center gap-2 font-medium text-sm ${linkedEvent ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10' : 'text-indigo-500 hover:bg-indigo-500/10'}`}
+                            >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Etkinlik
+                            </button>
+
+                            {showEventPicker && (
+                                <div className="absolute left-0 bottom-10 w-72 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-xl z-50 overflow-hidden">
+                                    <div className="p-3 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center">
+                                        <p className="text-sm font-semibold text-neutral-900 dark:text-white">Etkinlik Seç</p>
+                                        <button type="button" onClick={() => setShowEventPicker(false)} className="p-1 text-neutral-400 hover:text-neutral-600 rounded-full">
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
+                                    </div>
+                                    <div className="max-h-52 overflow-y-auto">
+                                        {eventsLoading ? (
+                                            <div className="py-6 text-center text-sm text-neutral-400">Yükleniyor...</div>
+                                        ) : events.length === 0 ? (
+                                            <div className="py-6 text-center text-sm text-neutral-400">Etkinlik bulunamadı</div>
+                                        ) : events.map(ev => (
+                                            <button
+                                                key={ev.id}
+                                                type="button"
+                                                onClick={() => { setLinkedEvent(ev); setShowEventPicker(false); }}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-left"
+                                            >
+                                                <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center">
+                                                    {ev.imageUrl ? (
+                                                        <img src={ev.imageUrl} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">{ev.title}</p>
+                                                    <p className="text-xs text-neutral-400">{format(new Date(ev.startDate), "d MMM", { locale: tr })}</p>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         {mediaItems.length > 0 && (
                             <span className="text-xs text-neutral-400">{mediaItems.length}/10</span>
                         )}
@@ -174,7 +269,7 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
 
                     <button
                         type="submit"
-                        disabled={isSubmitting || (mediaItems.length === 0 && !content.trim())}
+                        disabled={isSubmitting || (mediaItems.length === 0 && !content.trim() && !linkedEvent)}
                         className="group relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                     >
                         {isSubmitting ? (

@@ -10,6 +10,7 @@ import InteractionButtons from "./InteractionButtons";
 import ClubBadge from "@/components/ui/ClubBadge";
 import PostActionsMenu from "@/components/ui/PostActionsMenu";
 import PostMediaCarousel from "./PostMediaCarousel";
+import EventMiniCard from "./EventMiniCard";
 
 interface PostListProps {
     feedType?: 'all' | 'following';
@@ -68,6 +69,9 @@ export default async function PostList({ feedType = 'all' }: PostListProps) {
                     likes: { select: { userId: true } },
                     _count: { select: { likes: true } }
                 }
+            },
+            linkedEvent: {
+                select: { id: true, title: true, imageUrl: true, startDate: true, location: true, author: { select: { name: true } } }
             },
             _count: { select: { likes: true, comments: true } }
         },
@@ -137,6 +141,10 @@ export default async function PostList({ feedType = 'all' }: PostListProps) {
                                     />
                                 )}
                             </>
+                        )}
+
+                        {post.linkedEvent && (
+                            <EventMiniCard event={post.linkedEvent} />
                         )}
 
                         <PostContent
