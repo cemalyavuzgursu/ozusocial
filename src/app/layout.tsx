@@ -11,7 +11,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "UniVibe | Sadece Kampüs",
-  description: "Özyeğin Üniversitesi öğrencileri için özel sosyal ağ",
+  description: "Üniversite öğrencilerine özel sosyal ağ",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "UniVibe",
+  },
+  formatDetection: { telephone: false },
 };
 
 export default function RootLayout({
