@@ -50,7 +50,7 @@ export default function AuthSection() {
 
     const handleGoogle = async () => {
         setIsLoading(true);
-        await signIn("google", { callbackUrl: "/feed" });
+        await signIn("google", { callbackUrl: "/feed" }, { prompt: "select_account" });
     };
 
     const inputCls = "w-full px-4 py-3 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 text-sm outline-none focus:ring-2 focus:ring-rose-500 transition-all";
@@ -82,8 +82,8 @@ export default function AuthSection() {
                 <button
                     onClick={() => { setShowEmail(v => !v); setError(""); setSuccess(""); }}
                     className={`flex-1 flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-semibold text-sm transition-all shadow-sm ${showEmail
-                            ? "bg-rose-500 text-white hover:bg-rose-600"
-                            : "bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 ring-1 ring-inset ring-neutral-200 dark:ring-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                        ? "bg-rose-500 text-white hover:bg-rose-600"
+                        : "bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 ring-1 ring-inset ring-neutral-200 dark:ring-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800"
                         }`}
                 >
                     <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
