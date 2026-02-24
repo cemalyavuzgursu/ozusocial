@@ -122,6 +122,17 @@ model Post {
   author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes     Like[]
   comments  Comment[]
+  media     PostMedia[]
+}
+
+model PostMedia {
+  id      String @id @default(cuid())
+  url     String
+  type    String // "IMAGE" or "VIDEO"
+  order   Int    @default(0)
+
+  postId  String
+  post    Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model Like {

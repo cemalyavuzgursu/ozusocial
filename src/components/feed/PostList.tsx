@@ -9,6 +9,7 @@ import PostContent from "./PostContent";
 import InteractionButtons from "./InteractionButtons";
 import ClubBadge from "@/components/ui/ClubBadge";
 import PostActionsMenu from "@/components/ui/PostActionsMenu";
+import PostMediaCarousel from "./PostMediaCarousel";
 
 interface PostListProps {
     feedType?: 'all' | 'following';
@@ -59,6 +60,7 @@ export default async function PostList({ feedType = 'all' }: PostListProps) {
         include: {
             author: { select: { name: true, image: true, id: true, role: true } },
             likes: { select: { userId: true } },
+            media: { orderBy: { order: "asc" } },
             comments: {
                 orderBy: { createdAt: "asc" },
                 include: {
@@ -116,18 +118,25 @@ export default async function PostList({ feedType = 'all' }: PostListProps) {
                     </div>
 
                     <div className="pl-[52px]">
-                        {post.imageUrl && (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img src={post.imageUrl} alt="" className="w-full max-h-[500px] object-contain rounded-2xl mb-4 border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800" />
-                        )}
-                        {post.videoUrl && (
-                            <video
-                                src={post.videoUrl}
-                                controls
-                                playsInline
-                                preload="metadata"
-                                className="w-full max-h-[500px] rounded-2xl mb-4 border border-neutral-200 dark:border-neutral-800 bg-black"
-                            />
+                        {/* Medya carousel — yeni gönderiler PostMedia kullanır, eskiler imageUrl/videoUrl'e fallback yapar */}
+                        {(post.media?.length > 0) ? (
+                            <PostMediaCarousel media={post.media} />
+                        ) : (
+                            <>
+                                {post.imageUrl && (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                    <img src={post.imageUrl} alt="" className="w-full max-h-[500px] object-contain rounded-2xl mb-4 border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800" />
+                                )}
+                                {post.videoUrl && (
+                                    <video
+                                        src={post.videoUrl}
+                                        controls
+                                        playsInline
+                                        preload="metadata"
+                                        className="w-full max-h-[500px] rounded-2xl mb-4 border border-neutral-200 dark:border-neutral-800 bg-black"
+                                    />
+                                )}
+                            </>
                         )}
 
                         <PostContent

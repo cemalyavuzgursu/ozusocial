@@ -5,30 +5,44 @@
 import { useState, useRef } from "react";
 import { createPost } from "@/app/actions/post";
 
+interface PreviewItem {
+    file: File;
+    preview: string;
+    type: "IMAGE" | "VIDEO";
+}
+
 export default function CreatePostForm({ userProfileImage }: { userProfileImage?: string | null }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [mediaFile, setMediaFile] = useState<File | null>(null);
-    const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+    const [mediaItems, setMediaItems] = useState<PreviewItem[]>([]);
     const [content, setContent] = useState("");
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setMediaFile(file);
-            const objectUrl = URL.createObjectURL(file);
-            setMediaPreview(objectUrl);
-        }
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+
+        // Max 10 medya
+        const remaining = 10 - mediaItems.length;
+        const toAdd = files.slice(0, remaining);
+
+        const newItems: PreviewItem[] = toAdd.map(file => ({
+            file,
+            preview: URL.createObjectURL(file),
+            type: file.type.startsWith("video/") ? "VIDEO" : "IMAGE",
+        }));
+
+        setMediaItems(prev => [...prev, ...newItems]);
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const handleRemoveMedia = () => {
-        setMediaFile(null);
-        if (mediaPreview) URL.revokeObjectURL(mediaPreview);
-        setMediaPreview(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
+    const handleRemove = (index: number) => {
+        setMediaItems(prev => {
+            URL.revokeObjectURL(prev[index].preview);
+            return prev.filter((_, i) => i !== index);
+        });
     };
 
     const handleSubmit = async (formData: FormData) => {
@@ -36,14 +50,15 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
             setIsSubmitting(true);
             setError(null);
 
-            if (mediaFile) {
+            for (let i = 0; i < mediaItems.length; i++) {
+                const item = mediaItems[i];
                 const uploadData = new FormData();
-                uploadData.append("file", mediaFile);
+                uploadData.append("file", item.file);
                 uploadData.append("type", "post-media");
 
                 const res = await fetch("/api/upload", {
                     method: "POST",
-                    body: uploadData
+                    body: uploadData,
                 });
 
                 if (!res.ok) {
@@ -52,18 +67,16 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
                 }
 
                 const data = await res.json();
-                if (mediaFile.type.startsWith("video/")) {
-                    formData.append("videoUrl", data.url);
-                } else {
-                    formData.append("imageUrl", data.url);
-                }
+                formData.append(`mediaUrl_${i}`, data.url);
+                formData.append(`mediaType_${i}`, item.type);
             }
 
             await createPost(formData);
 
             formRef.current?.reset();
             setContent("");
-            handleRemoveMedia();
+            mediaItems.forEach(m => URL.revokeObjectURL(m.preview));
+            setMediaItems([]);
         } catch (err: any) {
             setError(err.message || "Bir hata oluştu.");
         } finally {
@@ -96,22 +109,36 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
                             maxLength={500}
                         />
 
-                        {mediaPreview && (
-                            <div className="relative mt-3 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-black/5 flex items-center justify-center">
-                                <button
-                                    type="button"
-                                    onClick={handleRemoveMedia}
-                                    className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors z-10 backdrop-blur-md"
-                                >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                                {mediaFile?.type.startsWith('video/') ? (
-                                    <video src={mediaPreview} controls playsInline preload="metadata" className="max-h-64 w-full rounded-xl bg-black" />
-                                ) : (
-                                    <img src={mediaPreview} alt="Önizleme" className="max-h-64 object-contain w-full" />
-                                )}
+                        {/* Medya önizleme grid */}
+                        {mediaItems.length > 0 && (
+                            <div className={`mt-3 grid gap-2 ${mediaItems.length === 1 ? 'grid-cols-1' : mediaItems.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                                {mediaItems.map((item, idx) => (
+                                    <div key={idx} className="relative rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-black/5 aspect-square group/item">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemove(idx)}
+                                            className="absolute top-1.5 right-1.5 p-1 bg-black/60 hover:bg-black/80 text-white rounded-full z-10 transition-colors"
+                                        >
+                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                        {item.type === "VIDEO" ? (
+                                            <video src={item.preview} className="w-full h-full object-cover" playsInline muted />
+                                        ) : (
+                                            <img src={item.preview} alt="" className="w-full h-full object-cover" />
+                                        )}
+                                        {item.type === "VIDEO" && (
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="bg-black/50 rounded-full p-2">
+                                                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M8 5v14l11-7z" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         )}
 
@@ -120,10 +147,11 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
                 </div>
 
                 <div className="flex justify-between items-center mt-2 pt-4 border-t border-neutral-100 dark:border-neutral-800">
-                    <div>
+                    <div className="flex items-center gap-2">
                         <input
                             type="file"
-                            accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,video/mp4,video/quicktime,video/webm,video/x-msvideo,video/*,image/*"
+                            accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,video/mp4,video/quicktime,video/webm,video/*,image/*"
+                            multiple
                             className="hidden"
                             ref={fileInputRef}
                             onChange={handleFileChange}
@@ -131,18 +159,22 @@ export default function CreatePostForm({ userProfileImage }: { userProfileImage?
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-full transition-colors flex items-center gap-2 font-medium text-sm"
+                            disabled={mediaItems.length >= 10}
+                            className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-full transition-colors flex items-center gap-2 font-medium text-sm disabled:opacity-40"
                         >
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                             Medya Ekle
                         </button>
+                        {mediaItems.length > 0 && (
+                            <span className="text-xs text-neutral-400">{mediaItems.length}/10</span>
+                        )}
                     </div>
 
                     <button
                         type="submit"
-                        disabled={isSubmitting || (!mediaFile && !content.trim())}
+                        disabled={isSubmitting || (mediaItems.length === 0 && !content.trim())}
                         className="group relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                     >
                         {isSubmitting ? (

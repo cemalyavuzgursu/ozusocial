@@ -13,10 +13,24 @@ export async function createPost(formData: FormData) {
     }
 
     const content = (formData.get("content") as string) || "";
-    const imageUrl = formData.get("imageUrl") as string | null;
-    const videoUrl = formData.get("videoUrl") as string | null;
 
-    if (content.trim().length === 0 && !imageUrl && !videoUrl) {
+    // Çoklu medya — mediaUrl_0, mediaUrl_1, ... ve mediaType_0, mediaType_1, ...
+    const mediaItems: { url: string; type: string }[] = [];
+    let i = 0;
+    while (formData.get(`mediaUrl_${i}`)) {
+        const url = formData.get(`mediaUrl_${i}`) as string;
+        const type = (formData.get(`mediaType_${i}`) as string) || "IMAGE";
+        mediaItems.push({ url, type });
+        i++;
+    }
+
+    // Geriye dönük uyumluluk için eski alanlar da kontrol
+    const legacyImageUrl = formData.get("imageUrl") as string | null;
+    const legacyVideoUrl = formData.get("videoUrl") as string | null;
+    if (legacyImageUrl && mediaItems.length === 0) mediaItems.push({ url: legacyImageUrl, type: "IMAGE" });
+    if (legacyVideoUrl && mediaItems.length === 0) mediaItems.push({ url: legacyVideoUrl, type: "VIDEO" });
+
+    if (content.trim().length === 0 && mediaItems.length === 0) {
         throw new Error("Gönderi metni veya medyası olmalıdır.");
     }
 
@@ -24,7 +38,6 @@ export async function createPost(formData: FormData) {
         throw new Error("Gönderi 500 karakterden uzun olamaz.");
     }
 
-    // Find user based on email (session contains email)
     const user = await prisma.user.findUnique({
         where: { email: session.user.email },
     });
@@ -33,17 +46,23 @@ export async function createPost(formData: FormData) {
         throw new Error("Kullanıcı bulunamadı.");
     }
 
-    // Create Post
     await prisma.post.create({
         data: {
             content: content.trim(),
-            imageUrl: imageUrl || null,
-            videoUrl: videoUrl || null,
+            // Geriye dönük uyumluluk için ilk medyayı imageUrl/videoUrl'e de kaydet
+            imageUrl: mediaItems.find(m => m.type === "IMAGE")?.url || null,
+            videoUrl: mediaItems.find(m => m.type === "VIDEO")?.url || null,
             authorId: user.id,
+            media: {
+                create: mediaItems.map((m, idx) => ({
+                    url: m.url,
+                    type: m.type,
+                    order: idx,
+                }))
+            }
         },
     });
 
-    // Revalidate the feed page so new post shows up instantly
     revalidatePath("/feed");
 }
 
@@ -56,7 +75,6 @@ export async function deletePost(postId: string) {
     if (!user) return;
 
     const post = await prisma.post.findUnique({ where: { id: postId } });
-    // Check if post belongs to user
     if (post?.authorId === user.id) {
         await prisma.post.delete({ where: { id: postId } });
         revalidatePath("/feed");
