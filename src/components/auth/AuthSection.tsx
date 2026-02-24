@@ -37,10 +37,22 @@ export default function AuthSection() {
     const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true); setError(""); setSuccess("");
+        const fd = new FormData(e.currentTarget);
         try {
-            await registerUser(new FormData(e.currentTarget));
-            setSuccess("Hesap oluşturuldu! Giriş yapabilirsiniz.");
-            setEmailTab("login");
+            await registerUser(fd);
+            // Kayıt başarılı → otomatik giriş yap ve onboarding'e yönlendir
+            const result = await signIn("credentials", {
+                email: fd.get("email") as string,
+                password: fd.get("password") as string,
+                redirect: false,
+            });
+            if (result?.error) {
+                setSuccess("Hesap oluşturuldu! Lütfen giriş yapın.");
+                setEmailTab("login");
+            } else {
+                router.push("/onboarding");
+                router.refresh();
+            }
         } catch (err: any) {
             setError(err.message || "Bir hata oluştu.");
         } finally {
