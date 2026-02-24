@@ -1,4 +1,4 @@
-import AuthButton from "@/components/auth/AuthButton";
+import AuthSection from "@/components/auth/AuthSection";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
@@ -52,14 +52,13 @@ export default async function Home() {
           Sadece <TypewriterEffect domains={domains} /> e-posta adresinle giriş yap, kampüsteki etkinliklerden haberdar ol, kulüpleri keşfet ve arkadaşlarınla iletişime geç.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mt-6">
-          <AuthButton />
-
+        <div className="w-full max-w-sm mt-4">
+          <AuthSection />
           <Link
             href="/help"
-            className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-sm font-semibold text-neutral-700 bg-white ring-1 ring-inset ring-neutral-200 hover:bg-neutral-50 dark:bg-neutral-900 dark:text-neutral-300 dark:ring-neutral-800 dark:hover:bg-neutral-800 transition-all duration-300"
+            className="inline-flex items-center justify-center gap-2 mt-4 text-sm font-medium text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
           >
-            Nasıl Çalışır?
+            Nasıl Çalışır? →
           </Link>
         </div>
 

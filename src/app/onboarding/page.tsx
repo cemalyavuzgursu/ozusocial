@@ -14,6 +14,8 @@ export default async function OnboardingPage({ searchParams }: { searchParams: {
             isOnboarded: true,
             isBanned: true,
             isPendingAgeReview: true,
+            authProvider: true,
+            password: true,
             university: {
                 select: { departments: true }
             }
@@ -61,6 +63,9 @@ export default async function OnboardingPage({ searchParams }: { searchParams: {
         ? user.university.departments.split(',').map(d => d.trim()).filter(Boolean)
         : [];
 
+    // Google ile giriş yapan ama henüz şifre belirlememişler için
+    const needsPassword = user.authProvider === "GOOGLE" && !user.password;
+
     return (
         <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl p-8 shadow-sm border border-neutral-200 dark:border-neutral-800 animate-in zoom-in-95 duration-500">
@@ -74,6 +79,15 @@ export default async function OnboardingPage({ searchParams }: { searchParams: {
                 )}
                 {searchParams.error === "invalid_year" && (
                     <p className="text-rose-500 text-sm text-center mb-4">Geçerli bir doğum yılı gir.</p>
+                )}
+                {searchParams.error === "weak_password" && (
+                    <p className="text-rose-500 text-sm text-center mb-4">Şifre en az 8 karakter, harf ve rakam içermelidir.</p>
+                )}
+                {searchParams.error === "password_mismatch" && (
+                    <p className="text-rose-500 text-sm text-center mb-4">Şifreler eşleşmiyor.</p>
+                )}
+                {searchParams.error === "missing_password" && (
+                    <p className="text-rose-500 text-sm text-center mb-4">Lütfen bir şifre belirle.</p>
                 )}
 
                 <form action={completeOnboarding} className="space-y-5">
@@ -118,6 +132,32 @@ export default async function OnboardingPage({ searchParams }: { searchParams: {
                         <input required type="number" name="birthYear" min="1900" max={new Date().getFullYear()} placeholder="Örn: 2002" className="w-full bg-neutral-100 dark:bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-rose-500 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100" />
                         <p className="text-xs text-neutral-500 dark:text-neutral-500">Platform 25 yaş ve altı kullanıcılara yöneliktir.</p>
                     </div>
+
+                    {/* Google kullanıcıları için şifre oluşturma */}
+                    {needsPassword && (
+                        <div className="space-y-4 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20">
+                            <div>
+                                <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-300 mb-1">🔐 Şifre Belirle</p>
+                                <p className="text-xs text-indigo-600 dark:text-indigo-400">Google hesabına ek olarak e-posta ile de giriş yapabilmek için bir şifre oluştur.</p>
+                            </div>
+                            <div className="space-y-2">
+                                <input
+                                    required
+                                    type="password"
+                                    name="password"
+                                    placeholder="Şifre (min. 8 karakter, harf + rakam)"
+                                    className="w-full bg-white dark:bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-indigo-500 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100"
+                                />
+                                <input
+                                    required
+                                    type="password"
+                                    name="confirmPassword"
+                                    placeholder="Şifreyi tekrarla"
+                                    className="w-full bg-white dark:bg-neutral-800 border-none outline-none focus:ring-2 focus:ring-indigo-500 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100"
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     <button
                         type="submit"

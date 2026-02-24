@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma) as any,
@@ -12,75 +14,88 @@ export const authOptions: NextAuthOptions = {
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
             allowDangerousEmailAccountLinking: true,
         }),
+        CredentialsProvider({
+            name: "credentials",
+            credentials: {
+                email: { label: "E-posta", type: "email" },
+                password: { label: "Şifre", type: "password" },
+            },
+            async authorize(credentials) {
+                if (!credentials?.email || !credentials?.password) return null;
+
+                const user = await prisma.user.findUnique({
+                    where: { email: credentials.email.toLowerCase() },
+                    select: { id: true, email: true, name: true, image: true, password: true, isOnboarded: true, isBanned: true }
+                });
+
+                if (!user || !user.password) return null;
+                if (user.isBanned) return null;
+
+                const passwordMatch = await bcrypt.compare(credentials.password, user.password);
+                if (!passwordMatch) return null;
+
+                return {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    image: user.image,
+                };
+            }
+        }),
     ],
     callbacks: {
-        async signIn({ user, account, profile }) {
+        async signIn({ user, account }) {
             if (!user.email) return false;
 
-            // KURAL 1: Admin VIP Bypass (Önceden yetkili admin eklemişse domain zorunluluğu yoktur)
+            // Credentials girişi: kullanıcı zaten doğrulandı, izin ver
+            if (account?.provider === "credentials") return true;
+
+            // Google girişi: mevcut kullanıcıya her zaman izin ver
             const existingUser = await prisma.user.findUnique({
                 where: { email: user.email },
                 select: { id: true }
             });
+            if (existingUser) return true;
 
-            if (existingUser) {
-                return true; // Kullanıcı zaten admin paneli/veritabanı içindeyse anında izin verilir.
-            }
-
-            // KURAL 2: EXTRACT DOMAIN AND CHECK IN DATABASE
+            // Yeni Google kullanıcısı: domain kontrolü
             const userDomain = user.email.split('@')[1];
 
-            // Allow override for test user
-            if (user.email === "deneme@gmail.com") {
-                return true;
-            }
+            if (user.email === "deneme@gmail.com") return true;
 
             const allowedUniversity = await prisma.university.findUnique({
                 where: { domain: userDomain }
             });
 
             if (allowedUniversity) {
-                // If this user is just being created, or already exists but doesn't have a domain set,
-                // Prisma adapter handles the creation *after* this callback returns true.
-                // However, `signIn` callback runs before the adapter creates the user in the database.
-                // So we can check if they exist. If they do, update them.
-                // If they don't, we can't update them yet, but we will fix that by updating their domain in the session callback or just trying to upsert it asynchronously.
-
-                // Let's try to update existing user
                 try {
                     await prisma.user.update({
                         where: { email: user.email },
                         data: { universityDomain: userDomain }
                     });
                 } catch (e) {
-                    // User might not exist yet (first login), that's fine.
+                    // User might not exist yet, will be set in createUser event
                 }
-
                 return true;
             }
 
-            // Diğerlerine red ver (hata sayfasına yönlendirir)
             return false;
         },
     },
     pages: {
-        signIn: "/", // Varsayılan giriş sayfası kendi tasarımımız
-        error: "/auth/error", // Eğer yetkisiz maille denerse düşeceği sayfa
+        signIn: "/",
+        error: "/auth/error",
     },
     session: {
         strategy: "jwt",
     },
     events: {
         async createUser({ user }) {
-            // Kullanıcı veri tabanına eklendiği AN çalışan kod:
-            // "Kullanıcı ilk girişinde girdiği e-posta adresinin domainine göre sayaçta bir kişi daha arttır"
-            // Bunu Prisma Relations ile çözdüğümüz için, burada `universityDomain` alanını atamak yeterli.
             if (user.email && user.id) {
                 const domain = user.email.split('@')[1];
                 if (domain) {
                     await prisma.user.update({
                         where: { id: user.id },
-                        data: { universityDomain: domain.toLowerCase() }
+                        data: { universityDomain: domain.toLowerCase(), authProvider: "GOOGLE" }
                     });
                 }
             }

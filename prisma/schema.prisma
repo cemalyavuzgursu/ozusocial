@@ -78,6 +78,10 @@ model User {
   banExpiresAt          DateTime? // Süreli ban bitiş tarihi
   isPendingAgeReview    Boolean   @default(false) // 25 yaş üstü kullanıcılar admin onayı bekler
 
+  // Email/Password Auth
+  password      String?   // bcrypt hash. null = henüz şifre belirlenmemiş (Google kullanıcıları)
+  authProvider  String    @default("GOOGLE") // "GOOGLE" | "CREDENTIALS"
+
   // Takip Sistemi
   followedBy    User[]   @relation("UserFollows")
   following     User[]   @relation("UserFollows")
