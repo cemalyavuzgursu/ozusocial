@@ -2,10 +2,11 @@
 
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import ClubBadge from "@/components/ui/ClubBadge";
+import { deleteEvent } from "@/app/actions/event";
 
 interface EventCardProps {
     event: {
@@ -30,6 +31,7 @@ interface EventCardProps {
 export default function EventCard({ event, currentUserId }: EventCardProps) {
     const isOwner = event.author.id === currentUserId;
     const [isDeleting, setIsDeleting] = useState(false);
+    const router = useRouter();
 
     // Etkinlik geçmiş mi?
     const isPastEvent = new Date() > new Date(event.endDate);
@@ -39,10 +41,11 @@ export default function EventCard({ event, currentUserId }: EventCardProps) {
 
         setIsDeleting(true);
         try {
-            // TODO: Server Action (deleteEvent) entegre edilecek
-            alert("Silme aksiyonu tetiklenecek.");
+            await deleteEvent(event.id);
+            router.refresh();
         } catch (error) {
             console.error(error);
+            alert("Etkinlik silinirken bir hata oluştu.");
         } finally {
             setIsDeleting(false);
         }
