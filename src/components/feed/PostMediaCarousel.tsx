@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface MediaItem {
     url: string;
@@ -10,16 +10,34 @@ interface MediaItem {
 
 export default function PostMediaCarousel({ media }: { media: MediaItem[] }) {
     const [current, setCurrent] = useState(0);
+    const touchStartX = useRef<number | null>(null);
 
     if (!media || media.length === 0) return null;
 
     const prev = () => setCurrent(c => (c - 1 + media.length) % media.length);
     const next = () => setCurrent(c => (c + 1) % media.length);
 
+    const handleTouchStart = (e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (touchStartX.current === null) return;
+        const diff = touchStartX.current - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) {
+            diff > 0 ? next() : prev();
+        }
+        touchStartX.current = null;
+    };
+
     const item = media[current];
 
     return (
-        <div className="relative w-full rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 mb-4 group">
+        <div
+            className="relative w-full rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800 mb-4 group"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+        >
             {/* Medya */}
             <div className="relative">
                 {item.type === "VIDEO" ? (
