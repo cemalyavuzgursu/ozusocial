@@ -3,7 +3,6 @@
 import { cookies } from "next/headers";
 import { createAdminToken } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import bcrypt from "bcryptjs";
 
 // --- Brute-force koruması (in-memory, VULN-14) ---
 const loginAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -28,26 +27,25 @@ function resetAttempts(ip: string) {
 // -------------------------------------------------
 
 export async function loginAdmin(formData: FormData) {
-    // VULN-14: Brute-force koruması
-    const ip = "server"; // Edge ortamında IP alınamıyor; server action IP bilgisi olmadığından global key kullanılıyor
+    const ip = "server";
     if (!checkRateLimit(ip)) {
-        return { error: "Çok fazla başarısız giriş denemesi. Lütfen 15 dakika bekleyin." };
+        return { error: "Çok fazla başarısız giriş denemesi. Lütfen 5 dakika bekleyin." };
     }
 
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
 
-    // VULN-1: Kimlik bilgileri artık .env'den okunuyor
+    // VULN-1: Kimlik bilgileri .env'den okunuyor
     const adminUsername = process.env.ADMIN_USERNAME;
-    const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+    const adminPassword = process.env.ADMIN_PASSWORD; // Düz metin şifre ($ işareti sorunu yok)
 
-    if (!adminUsername || !adminPasswordHash) {
-        console.error("ADMIN_USERNAME veya ADMIN_PASSWORD_HASH env değişkeni tanımlı değil!");
+    if (!adminUsername || !adminPassword) {
+        console.error("ADMIN_USERNAME veya ADMIN_PASSWORD env değişkeni tanımlı değil!");
         return { error: "Sunucu yapılandırma hatası." };
     }
 
     const usernameMatch = username === adminUsername;
-    const passwordMatch = usernameMatch ? await bcrypt.compare(password, adminPasswordHash) : false;
+    const passwordMatch = usernameMatch && password === adminPassword;
 
     if (usernameMatch && passwordMatch) {
         resetAttempts(ip);
@@ -58,7 +56,7 @@ export async function loginAdmin(formData: FormData) {
             expires: expires,
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict", // VULN-15: lax → strict
+            sameSite: "strict",
             path: "/admin",
         });
 
