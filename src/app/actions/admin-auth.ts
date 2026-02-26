@@ -7,8 +7,8 @@ import bcrypt from "bcryptjs";
 
 // --- Brute-force koruması (in-memory, VULN-14) ---
 const loginAttempts = new Map<string, { count: number; resetAt: number }>();
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 15 * 60 * 1000; // 15 dakika
+const MAX_ATTEMPTS = 20;
+const LOCKOUT_MS = 5 * 60 * 1000; // 5 dakika
 
 function checkRateLimit(ip: string): boolean {
     const now = Date.now();
