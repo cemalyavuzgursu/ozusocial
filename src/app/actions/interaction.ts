@@ -37,6 +37,11 @@ export async function addComment(postId: string, content: string) {
 
     if (!content || content.trim() === "") return;
 
+    // VULN-10: Yorum uzunluk sınırı
+    if (content.length > 1000) {
+        throw new Error("Yorum 1000 karakterden uzun olamaz.");
+    }
+
     const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user) throw new Error("Kullanıcı bulunamadı.");
 
@@ -85,6 +90,11 @@ export async function editComment(commentId: string, newContent: string) {
     if (!session?.user?.email) throw new Error("Giriş yapmalısınız!");
 
     if (!newContent || newContent.trim() === "") return;
+
+    // VULN-11: Yorum düzenleme uzunluk sınırı
+    if (newContent.length > 1000) {
+        throw new Error("Yorum 1000 karakterden uzun olamaz.");
+    }
 
     const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user) throw new Error("Kullanıcı bulunamadı.");

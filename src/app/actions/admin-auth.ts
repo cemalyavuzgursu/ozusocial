@@ -3,13 +3,54 @@
 import { cookies } from "next/headers";
 import { createAdminToken } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import bcrypt from "bcryptjs";
+
+// --- Brute-force koruması (in-memory, VULN-14) ---
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000; // 15 dakika
+
+function checkRateLimit(ip: string): boolean {
+    const now = Date.now();
+    const record = loginAttempts.get(ip);
+    if (!record || now > record.resetAt) {
+        loginAttempts.set(ip, { count: 1, resetAt: now + LOCKOUT_MS });
+        return true;
+    }
+    if (record.count >= MAX_ATTEMPTS) return false;
+    record.count++;
+    return true;
+}
+
+function resetAttempts(ip: string) {
+    loginAttempts.delete(ip);
+}
+// -------------------------------------------------
 
 export async function loginAdmin(formData: FormData) {
+    // VULN-14: Brute-force koruması
+    const ip = "server"; // Edge ortamında IP alınamıyor; server action IP bilgisi olmadığından global key kullanılıyor
+    if (!checkRateLimit(ip)) {
+        return { error: "Çok fazla başarısız giriş denemesi. Lütfen 15 dakika bekleyin." };
+    }
+
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
 
-    // Müşterinin talebine istinaden, Oauth olmadan "admin" / "1234" hardcoded girişi
-    if (username === "admin" && password === "1234") {
+    // VULN-1: Kimlik bilgileri artık .env'den okunuyor
+    const adminUsername = process.env.ADMIN_USERNAME;
+    const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+
+    if (!adminUsername || !adminPasswordHash) {
+        console.error("ADMIN_USERNAME veya ADMIN_PASSWORD_HASH env değişkeni tanımlı değil!");
+        return { error: "Sunucu yapılandırma hatası." };
+    }
+
+    const usernameMatch = username === adminUsername;
+    const passwordMatch = usernameMatch ? await bcrypt.compare(password, adminPasswordHash) : false;
+
+    if (usernameMatch && passwordMatch) {
+        resetAttempts(ip);
         const { token, expires } = await createAdminToken(username);
 
         const cookieStore = await cookies();
@@ -17,7 +58,7 @@ export async function loginAdmin(formData: FormData) {
             expires: expires,
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: "strict", // VULN-15: lax → strict
             path: "/admin",
         });
 

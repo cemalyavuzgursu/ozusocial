@@ -72,6 +72,12 @@ export async function sendMessage(conversationId: string, content: string, fileU
     const me = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!me) throw new Error("Kullanıcı bulunamadı.");
 
+    // VULN-7: Kullanıcının konuşmaya katılımcı olup olmadığını doğrula
+    const conversation = await prisma.conversation.findFirst({
+        where: { id: conversationId, participants: { some: { id: me.id } } }
+    });
+    if (!conversation) throw new Error("Bu konuşmaya erişim yetkiniz yok.");
+
     if ((!content || content.trim() === "") && !fileUrl) return;
 
     await prisma.message.create({
@@ -94,6 +100,15 @@ export async function getMessages(conversationId: string) {
     noStore(); // Polling request should not be cached!
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) return [];
+
+    const me = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
+    if (!me) return [];
+
+    // VULN-8: Kullanıcının konuşmaya katılımcı olup olmadığını doğrula
+    const conversation = await prisma.conversation.findFirst({
+        where: { id: conversationId, participants: { some: { id: me.id } } }
+    });
+    if (!conversation) return [];
 
     return await prisma.message.findMany({
         where: { conversationId },

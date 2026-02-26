@@ -13,7 +13,10 @@ export async function middleware(request: NextRequest) {
         }
 
         try {
-            const secretKey = process.env.NEXTAUTH_SECRET || "default_admin_secret_fallback";
+            const secretKey = process.env.NEXTAUTH_SECRET;
+            if (!secretKey) {
+                return NextResponse.redirect(new URL('/admin/login', request.url));
+            }
             const key = new TextEncoder().encode(secretKey);
 
             // Token doğrulamasını burada kenar işlevinde (edge runtime) yap

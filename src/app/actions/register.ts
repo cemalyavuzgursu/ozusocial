@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function registerUser(formData: FormData) {
     const email = (formData.get("email") as string)?.trim().toLowerCase();
@@ -28,12 +30,9 @@ export async function registerUser(formData: FormData) {
     const domain = email.split("@")[1];
     if (!domain) throw new Error("Geçerli bir e-posta girin.");
 
-    // deneme@gmail.com bypass
-    if (email !== "deneme@gmail.com") {
-        const university = await prisma.university.findUnique({ where: { domain } });
-        if (!university) {
-            throw new Error("Bu e-posta adresi kayıtlı bir üniversiteye ait değil.");
-        }
+    const university = await prisma.university.findUnique({ where: { domain } });
+    if (!university) {
+        throw new Error("Bu e-posta adresi kayıtlı bir üniversiteye ait değil.");
     }
 
     // Mevcut kullanıcı kontrolü
@@ -59,6 +58,15 @@ export async function registerUser(formData: FormData) {
 }
 
 export async function setPasswordForGoogleUser(userId: string, password: string) {
+    // VULN-3: Kimlik doğrulaması ve sahiplik kontrolü
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) throw new Error("Giriş yapmalısınız.");
+
+    const currentUser = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } });
+    if (!currentUser || currentUser.id !== userId) {
+        throw new Error("Sadece kendi şifrenizi değiştirebilirsiniz.");
+    }
+
     if (password.length < 8) throw new Error("Şifre en az 8 karakter olmalıdır.");
     if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
         throw new Error("Şifre hem harf hem rakam içermelidir.");

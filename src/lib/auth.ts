@@ -1,7 +1,11 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const secretKey = process.env.NEXTAUTH_SECRET || "default_admin_secret_fallback";
+const rawSecret = process.env.NEXTAUTH_SECRET;
+if (!rawSecret) {
+    throw new Error("NEXTAUTH_SECRET ortam değişkeni tanımlı değil! Uygulamayı başlatmadan önce .env.local dosyasına ekleyin.");
+}
+const secretKey = rawSecret;
 const key = new TextEncoder().encode(secretKey);
 
 export async function createAdminToken(username: string) {

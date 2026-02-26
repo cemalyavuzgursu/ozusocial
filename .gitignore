@@ -45,3 +45,7 @@ next-env.d.ts
 # sqlite databases
 prisma/*.db
 prisma/*.db-journal
+
+# VULN-12: Proje k\u00f6k\u00fcndeki SQLite veritaban\u0131 dosyalar\u0131
+*.db
+*.db-journal

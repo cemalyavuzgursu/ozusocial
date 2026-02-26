@@ -12,7 +12,7 @@ export const authOptions: NextAuthOptions = {
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID || "",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-            allowDangerousEmailAccountLinking: true,
+            // VULN-5: allowDangerousEmailAccountLinking kaldırıldı
         }),
         CredentialsProvider({
             name: "credentials",
@@ -58,9 +58,8 @@ export const authOptions: NextAuthOptions = {
             if (existingUser) return true;
 
             // Yeni Google kullanıcısı: domain kontrolü
+            // VULN-6: deneme@gmail.com bypass kaldırıldı
             const userDomain = user.email.split('@')[1];
-
-            if (user.email === "deneme@gmail.com") return true;
 
             const allowedUniversity = await prisma.university.findUnique({
                 where: { domain: userDomain }

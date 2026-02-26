@@ -167,6 +167,12 @@ export async function createUser(data: { name: string; email: string; role: "STU
         throw new Error("E-posta ve isim zorunludur.");
     }
 
+    // VULN-13: E-posta format doğrulama
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+        throw new Error("Geçerli bir e-posta adresi girin.");
+    }
+
     const existingUser = await prisma.user.findUnique({
         where: { email: data.email }
     });

@@ -88,6 +88,11 @@ export async function editPost(postId: string, newContent: string) {
 
     if (!session || !session.user?.email) return;
 
+    // VULN-9: editPost'ta da 500 karakter sınırı
+    if (newContent.length > 500) {
+        throw new Error("Gönderi 500 karakterden uzun olamaz.");
+    }
+
     const user = await prisma.user.findUnique({ where: { email: session.user.email } });
     if (!user) return;
 
